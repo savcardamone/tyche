@@ -1,0 +1,44 @@
+"""
+Description
+     SConstruct file for tyche++
+     Creates a build directory and compiles both release and debug versions of tyche++
+
+Author
+     Salvatore Cardamone
+"""
+
+# Set our required libraries and their paths
+libraries 		= ['boost_mpi', 'boost_serialization']
+library_paths 	= ['/usr/lib', '/usr/local/lib']
+# Definitions for the pre-processor
+cpp_defines = []
+# Include paths for project code
+cpp_paths = ['.']
+# C++ pre-processor flags
+cpp_flags = ['-Wall', '-Werror', '-Wshadow', '-Wnon-virtual-dtor', '-pedantic']
+# C++ compiler flags
+cxx_flags = ['-std=c++17', '-O3']
+
+# Define the attributes of the build environment shared between both the debug and release builds
+common_env = Environment( CXX = '/usr/local/mpich/bin/mpic++' )
+common_env.Append( LIBS = libraries )
+common_env.Append( LIBPATH = library_paths )
+common_env.Append( CPPDEFINES = cpp_defines )
+common_env.Append( CPPFLAGS = cpp_flags )
+common_env.Append( CXXFLAGS = cxx_flags )
+common_env.Append( CPPPATH = cpp_paths )
+
+# Our release build is derived from the common build environment...
+release_env = common_env.Clone()
+release_env.Append( CPPDEFINES = ['RELEASE'] )
+release_env.VariantDir( 'build/release/src', 'src', duplicate=0 )
+
+# ... and our debug build environment in a similar fashion
+debug_env = common_env.Clone()
+debug_env.Append( CPPDEFINES = ['DEBUG'] )
+debug_env.VariantDir( 'build/debug/src', 'src', duplicate=0 )
+
+# Now that all build environment have been defined, let's iterate over them and invoke the lower level SConscript files.
+for mode, env in dict(release=release_env, debug=debug_env).iteritems():
+    modeDir = 'build/%s' % mode
+    env.SConscript( '%s/src/sconscript' % modeDir, {'env': env} )

@@ -1,0 +1,27 @@
+"""
+Description
+     SConscript file for tyche++
+Author
+     Salvatore Cardamone
+"""
+
+import os
+
+Import( 'env' )
+
+# Copy parent environment so our alterations don't affect it
+env = env.Clone()
+
+source_files = []
+# Add source files in top level of src/ to source files
+source_files.append( Glob("./*.c*") )
+
+# Add source directories (at all levels) to the include path and add their contents as build targets
+for dirpath, dirnames, filenames in os.walk( os.getcwd() ):
+    for dirname in dirnames:
+        # Add all source files within the directory to source_files array
+		directory_source_files = "%s/*.c*" % dirname
+		source_files.append( Glob(directory_source_files) )
+
+# build a program that uses the source files as a shared library
+env.Program( '../bin/tyche.x', source_files )
