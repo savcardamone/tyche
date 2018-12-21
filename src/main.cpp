@@ -14,13 +14,13 @@
  */
 int main(int argc, char* argv[]) {
 
-	tycheplusplus::MultiProcessCommunications comms;
-	tycheplusplus::OutputManager output(comms.GetCommunicator(), std::cout.rdbuf());
-	output << "tyche++ begins" << std::endl;
+  tycheplusplus::MultiProcessCommunications comms;
+  tycheplusplus::OutputManager output(comms.GetCommunicator(), std::cout.rdbuf());
+  output << "tyche++ begins" << std::endl;
 
-	comms.PartitionNodes();
+  comms.PartitionNodes();
   comms.Print(output.GetStream());
-
-	output << "tyche++ ends." << std::endl;
+    
+  output << "tyche++ ends." << std::endl;
 
 }
