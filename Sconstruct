@@ -26,7 +26,10 @@ common_env.Append( LIBPATH = library_paths )
 common_env.Append( CPPDEFINES = cpp_defines )
 common_env.Append( CPPFLAGS = cpp_flags )
 common_env.Append( CXXFLAGS = cxx_flags )
-common_env.Replace( CPPPATH = cpp_paths )
+common_env.Append( CPPPATH = cpp_paths )
+
+# libxml++-3.0 uses pkg-config to generate compile-time flags to resolve dependencies
+common_env.ParseConfig( "pkg-config --cflags --libs libxml++-3.0" )
 
 # Our release build is derived from the common build environment...
 release_env = common_env.Clone()

@@ -3,8 +3,9 @@
  * @author Salvatore Cardamone
  * @brief Entry point for tyche++.
  */
-#include "output/output_manager.hpp"
 #include "multiprocess/multiprocess_communications.hpp"
+#include "output/output_manager.hpp"
+#include "input/input_manager.hpp"
 
 /**
  * @brief Entry routine for tyche++.
@@ -20,7 +21,9 @@ int main(int argc, char* argv[]) {
 
   comms.PartitionNodes();
   comms.Print(output.GetStream());
-    
+
+  tycheplusplus::InputManager input();
+
   output << "tyche++ ends." << std::endl;
 
 }
