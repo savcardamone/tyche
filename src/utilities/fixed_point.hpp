@@ -69,7 +69,7 @@ public:
    * @brief Class constructor.
    * @param value Single precision value to initialise with.
    */
-  fixed& operator +=(fixed const& rhs) {
+  FixedPoint<B,I,F>& operator +=(FixedPoint<B,I,F> const& rhs) {
     value_ += rhs.value_;
     return *this;
   }
@@ -79,7 +79,7 @@ public:
    * @param rhs Value to subtract from lhs.
    * @retval lhs - rhs.
    */
-  fixed& operator -=(fixed const& rhs) {
+  FixedPoint<B,I,F>& operator -=(FixedPoint<B,I,F> const& rhs) {
     value_ -= rhs.value_;
     return *this;
   }
@@ -89,7 +89,7 @@ public:
    * @param rhs Value to multiply lhs by.
    * @retval lhs * rhs.
    */
-  fixed& operator *=(fixed const& rhs) {
+  FixedPoint<B,I,F>& operator *=(FixedPoint<B,I,F> const& rhs) {
     value_ = (static_cast<typename TypePromotion<B>::type>
 	      (value_) * rhs.value_) >> number_fractional_bits_;
     return *this;
@@ -100,7 +100,7 @@ public:
    * @param rhs Value to divide lhs by.
    * @retval lhs / rhs.
    */
-  fixed& operator /=(fixed const& rhs) {
+  FixedPoint<B,I,F>& operator /=(FixedPoint<B,I,F> const& rhs) {
     value_ = (static_cast<typename TypePromotion<B>::type>
 	      (value_) << number_fractional_bits_) / rhs.value_;
     return *this;

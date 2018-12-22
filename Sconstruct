@@ -8,12 +8,12 @@ Author
 """
 
 # Set our required libraries and their paths
-libraries 		= ['boost_mpi', 'boost_serialization']
-library_paths 	= ['/usr/lib', '/usr/local/lib']
+libraries = ['boost_mpi', 'boost_serialization']
+library_paths = ['/usr/lib', '/usr/local/lib']
 # Definitions for the pre-processor
 cpp_defines = []
 # Include paths for project code
-cpp_paths = ['.']
+cpp_paths = ['#/src/']
 # C++ pre-processor flags
 cpp_flags = ['-Wall', '-Werror', '-Wshadow', '-Wnon-virtual-dtor', '-pedantic']
 # C++ compiler flags
@@ -26,19 +26,24 @@ common_env.Append( LIBPATH = library_paths )
 common_env.Append( CPPDEFINES = cpp_defines )
 common_env.Append( CPPFLAGS = cpp_flags )
 common_env.Append( CXXFLAGS = cxx_flags )
-common_env.Append( CPPPATH = cpp_paths )
+common_env.Replace( CPPPATH = cpp_paths )
 
 # Our release build is derived from the common build environment...
 release_env = common_env.Clone()
 release_env.Append( CPPDEFINES = ['RELEASE'] )
 release_env.VariantDir( 'build/release/src', 'src', duplicate=0 )
 
-# ... and our debug build environment in a similar fashion
+# ... and our debug build environment in a similar fashion...
 debug_env = common_env.Clone()
 debug_env.Append( CPPDEFINES = ['DEBUG'] )
 debug_env.VariantDir( 'build/debug/src', 'src', duplicate=0 )
 
-# Now that all build environment have been defined, let's iterate over them and invoke the lower level SConscript files.
-for mode, env in dict(release=release_env, debug=debug_env).iteritems():
+# ... and finally our unit tests
+test_env = common_env.Clone()
+test_env.Append( LIBS = ['boost_unit_test_framework'] )
+test_env.VariantDir( 'build/test/src', 'test', duplicate=0 )
+
+# Now that all build environments have been defined, let's iterate over them and invoke the lower level SConscript files.
+for mode, env in dict(release=release_env,debug=debug_env,test=test_env).iteritems():
     modeDir = 'build/%s' % mode
     env.SConscript( '%s/src/Sconscript' % modeDir, {'env': env} )

@@ -15,6 +15,7 @@ env = env.Clone()
 source_files = []
 # Add source files in top level of src/ to source files
 source_files.append( Glob("./*.c*") )
+
 # Add source directories (at all levels) to the include path and add their contents as build targets
 for dirpath, dirnames, filenames in os.walk( os.getcwd() ):
     for dirname in dirnames:
@@ -23,4 +24,4 @@ for dirpath, dirnames, filenames in os.walk( os.getcwd() ):
 	source_files.append( Glob(directory_source_files) )
 
 # build a program that uses the source files as a shared library
-env.Program( '../bin/tyche.x', source_files )
+env.Program( '../bin/tyche_unit_tests.x', source_files )
