@@ -9,9 +9,10 @@
 #ifndef __TYCHEPLUSPLUS_FIXED_POINT_HPP
 #define __TYCHEPLUSPLUS_FIXED_POINT_HPP
 
+#include <cstddef>
 #include <boost/operators.hpp>
-#include "utilities/type_promotion.hpp"
 #include <boost/type_index.hpp>
+#include "utilities/type_promotion.hpp"
 
 namespace tycheplusplus {
   
@@ -111,7 +112,7 @@ public:
    * @retval Fixed point number cast to float.
    */
   float AsFloat() const {
-    return (float)value_ / two_power_f_ ;
+    return (float)value_ / two_power_f_;
   }
 
   /**
@@ -119,7 +120,7 @@ public:
    * @retval Fixed point number cast to double.
    */
   double AsDouble() const {
-    return (double)value_ / two_power_f_ ;
+    return (double)value_ / two_power_f_;
   }
 
   /**
@@ -134,20 +135,121 @@ public:
 	   << boost::typeindex::type_id<B>().pretty_name() << std::endl
 	   << "     Has Sign Bit: "
 	   << std::numeric_limits<B>::is_signed << std::endl
-	   << "     Stored Value: " << value_ << std::endl
+	   << "     Stored Value: " << std::hex << value_ << std::dec << std::endl
 	   << "     Floating Point: " << AsDouble() << std::endl;
+  }
+
+  /**
+   * @brief Compute the exponential of a fixed point number.
+   *
+   *        This is fairly inefficient, utilising (I+F) integer multiplications.
+   *        The exponential is split into its integer and fractional parts:
+   *
+   *                         exp(i.f) = exp(i) * exp(f)
+   *
+   *        For the fractional part, we move down the fractional bits of the
+   *        argument, lookup the associated value for the exponential of the
+   *        fractional bit and multiply-accumulate if the bit is high, otherwise
+   *        it makes no contribution. So, for instance, e^{0.625} is equal to:
+   *
+   *                    1*exp(0.5) * 0*exp(0.25) * 1*exp(0.125)
+   *
+   *        the values of the exponential for which are already tabulated.
+   *        We compute the integer part in a similar fashion using the
+   *        integer part lookup table. If the argument is negative, we
+   *        divide-accumulate rather than multiply-accumulate.
+   *
+   *        We should implement a specialised Gaussian function, since the 
+   *        integer part is only relevant over a much smaller dynamic range.
+   * @param arg The argument of the exponential function.
+   * @retval exp(arg).
+   */
+  friend FixedPoint<B,I,F> exp(FixedPoint<B,I,F> const& arg) {
+
+    FixedPoint<B,I,F> result(1.0);
+    std::cout << std::hex << arg.value_ << std::endl;
+    // We start from the MSB in the fractional part and work our way down the
+    // number of fractional bits
+    for (int i_frac = F-1; i_frac >= 0; --i_frac) {
+      if (arg.value_ & 1ULL<<i_frac) {
+	result.value_ =
+	  (static_cast<typename TypePromotion<B>::type>(result.value_) *
+	   exp_frac_lut[F-i_frac-1]) >> F;
+      }
+    }
+
+    // Need to find out whether we're dividing or multiplying for the
+    // integer part
+    bool is_negative =
+      std::numeric_limits<B>::is_signed && ((1ULL << (I+F-1)) & arg.value_) ?
+      true : false ;
+    std::cout << is_negative << std::endl;
+    // We start from the MSB in the integer part and work our way up the number
+    // of integer bits
+    if (is_negative) {
+      for (int i_int = F; i_int<(I+F); ++i_int) {
+	if (arg.value_ & 1ULL<<i_int) {
+	  std::cout << std::dec << i_int << std::hex << " : " << result.value_ << " / " << exp_int_lut[i_int-F] << std::endl;
+	  result.value_ =
+	    (static_cast<typename TypePromotion<B>::type>(result.value_) /
+	     exp_int_lut[i_int-F]) >> F;
+	}
+      }
+    } else {
+      for (int i_int = F; i_int<(I+F); ++i_int) {
+	if (arg.value_ & 1ULL<<i_int) {
+	  result.value_ =
+	    (static_cast<typename TypePromotion<B>::type>(result.value_) *
+	     exp_int_lut[i_int-F]) >> F;
+	}
+      }
+    }
+    
+    return result;
+    
   }
   
 private:
   // Alias for the sake of simplifying functions
-  using fixed = FixedPoint<B,I,F>;
+  B value_;
   static constexpr unsigned char number_integer_bits_ = (unsigned char)I;
   static constexpr unsigned char number_fractional_bits_ = (unsigned char)F;
   static constexpr B two_power_f_ = (1ULL << F);
-  B value_;
 
-} ;
+  // exp[0.5], exp[0.25], exp[0.125], etc... in Q32.32
+  static constexpr unsigned long exp_frac_lut[31] = {
+    0x00000001a61298e2, 0x0000000148b5e3c4, 0x000000012216045b,
+    0x000000011082b578, 0x0000000108205601, 0x0000000104080ab5,
+    0x0000000102020156, 0x000000010100802b, 0x0000000100802005,
+    0x0000000100400801, 0x0000000100200200, 0x0000000100100080,
+    0x0000000100080020, 0x0000000100040008, 0x0000000100020002,
+    0x0000000100010001, 0x0000000100008000, 0x0000000100004000,
+    0x0000000100002000, 0x0000000100001000, 0x0000000100000800,
+    0x0000000100000400, 0x0000000100000200, 0x0000000100000100,
+    0x0000000100000080, 0x0000000100000040, 0x0000000100000020,
+    0x0000000100000010, 0x0000000100000008, 0x0000000100000004,
+    0x0000000100000002
+  };
+  // exp[1], exp[2], exp[4], etc... in Q32.32
+  // QQ This is actually exp[1], exp[2], exp[3], ...
+  static constexpr unsigned long exp_int_lut[31] = {
+    0x00000002b7e15163, 0x0000000763992e35, 0x0000001415e5bf70,
+    0x0000003699205c4e, 0x0000009469c4cb82, 0x000001936dc5690c,
+    0x00000448a216abb7, 0x00000ba4f53ea386, 0x00001fa7157c4710,
+    0x0000560a773e5416, 0x0000e9e22447727c, 0x00027bc2ca9a6f93,
+    0x0006c02d645ab255, 0x001259ac48bf05d8, 0x0031e1995f5a550e,
+    0x0087975e85400100, 0x01709348c0ea4f90, 0x03e9e441232817a0,
+    0x0aa36c7cf6937080, 0x1ceb088b68e80400, 0x4e9b87f67bb3f400,
+    0xd5ad6dce21b00000, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff
+  };
 
+};
+  
 }
 
 #endif /* #ifndef __TYCHEPLUSPLUS_FIXED_POINT_HPP */
+
+
