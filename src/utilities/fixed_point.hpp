@@ -230,17 +230,17 @@ private:
     0x0000000100000010, 0x0000000100000008, 0x0000000100000004,
     0x0000000100000002
   };
+  
   // exp[1], exp[2], exp[4], etc... in Q32.32
-  // QQ This is actually exp[1], exp[2], exp[3], ...
   static constexpr unsigned long exp_int_lut[31] = {
-    0x00000002b7e15163, 0x0000000763992e35, 0x0000001415e5bf70,
-    0x0000003699205c4e, 0x0000009469c4cb82, 0x000001936dc5690c,
-    0x00000448a216abb7, 0x00000ba4f53ea386, 0x00001fa7157c4710,
-    0x0000560a773e5416, 0x0000e9e22447727c, 0x00027bc2ca9a6f93,
-    0x0006c02d645ab255, 0x001259ac48bf05d8, 0x0031e1995f5a550e,
-    0x0087975e85400100, 0x01709348c0ea4f90, 0x03e9e441232817a0,
-    0x0aa36c7cf6937080, 0x1ceb088b68e80400, 0x4e9b87f67bb3f400,
-    0xd5ad6dce21b00000, 0xffffffffffffffff, 0xffffffffffffffff,
+    0x00000002b7e15163, 0x0000000763992e35, 0x0000003699205c4e,
+    0x00000ba4f53ea386, 0x0087975e85400100, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
+    0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
     0xffffffffffffffff
