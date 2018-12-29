@@ -167,7 +167,7 @@ public:
   friend FixedPoint<B,I,F> exp(FixedPoint<B,I,F> const& arg) {
 
     FixedPoint<B,I,F> result(1.0);
-    std::cout << std::hex << arg.value_ << std::endl;
+
     // We start from the MSB in the fractional part and work our way down the
     // number of fractional bits
     for (int i_frac = F-1; i_frac >= 0; --i_frac) {
@@ -181,20 +181,21 @@ public:
     // Need to find out whether we're dividing or multiplying for the
     // integer part
     bool is_negative =
-      std::numeric_limits<B>::is_signed && ((1ULL << (I+F-1)) & arg.value_) ?
-      true : false ;
-    std::cout << is_negative << std::endl;
-    // We start from the MSB in the integer part and work our way up the number
-    // of integer bits
+      std::numeric_limits<B>::is_signed && ((1ULL << (I+F-1)) & arg.value_);
+
+    // If the number is negative, we need to do some two's complement to get the
+    // integer part then work our way up from the LSB
     if (is_negative) {
-      for (int i_int = F; i_int<(I+F); ++i_int) {
-	if (arg.value_ & 1ULL<<i_int) {
-	  std::cout << std::dec << i_int << std::hex << " : " << result.value_ << " / " << exp_int_lut[i_int-F] << std::endl;
+      B integer_part = ~(arg.value_ >> F) + 1;
+      for (int i_int = 0; i_int<I; ++i_int) {
+	if (integer_part & 1ULL<<i_int) {
 	  result.value_ =
-	    (static_cast<typename TypePromotion<B>::type>(result.value_) /
-	     exp_int_lut[i_int-F]) >> F;
+	    (static_cast<typename TypePromotion<B>::type>(result.value_) << F) /
+	     exp_int_lut[i_int];
 	}
       }
+    // If the number is positive, we start from the MSB in the integer part and
+    // work our way up the number of integer bits
     } else {
       for (int i_int = F; i_int<(I+F); ++i_int) {
 	if (arg.value_ & 1ULL<<i_int) {
@@ -230,7 +231,6 @@ private:
     0x0000000100000010, 0x0000000100000008, 0x0000000100000004,
     0x0000000100000002
   };
-  
   // exp[1], exp[2], exp[4], etc... in Q32.32
   static constexpr unsigned long exp_int_lut[31] = {
     0x00000002b7e15163, 0x0000000763992e35, 0x0000003699205c4e,
