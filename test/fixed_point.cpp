@@ -4,6 +4,7 @@
  * @brief Unit test for FixedPoint class.
  */
 #define BOOST_TEST_MODULE FixedPointTest
+#include <random>
 #include <boost/test/included/unit_test.hpp>
 #include "utilities/fixed_point.hpp"
 
@@ -60,10 +61,53 @@ BOOST_AUTO_TEST_CASE( addition ) {
 
 }
 
+/**
+ * Test the exponential functionality, both signed and unsigned with positive
+ * and negative arguments.
+ */
 BOOST_AUTO_TEST_CASE( exponential ) {
 
-  tycheplusplus::FixedPoint<int,16> e_compute(1.0), e_ref(2.71828182845904523536028747135);
-  auto result = exp(e_compute);
-  BOOST_CHECK_EQUAL(result.AsDouble(), e_ref.AsDouble());
+  constexpr int n_samples = 2048;
+
+  // We'll use the Mersenne Twister for our PRNG
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  std::uniform_real_distribution<double> us_char_dist(0.0, 1.0);
+  for (auto i = 0; i < n_samples; ++i) {
+    auto val = us_char_dist(gen);
+    tycheplusplus::FixedPoint<unsigned char,4,4> arg(val);
+    auto exp_result = exp(arg);
+    auto diff = fabs(exp_result.AsDouble() - exp(val));
+    BOOST_CHECK_SMALL(diff, 1.0);
+  }
+
+  std::uniform_real_distribution<double> us_short_dist(0.0, 2.0);
+  for (auto i = 0; i < n_samples; ++i) {
+    auto val = us_short_dist(gen);
+    tycheplusplus::FixedPoint<unsigned short,8,8> arg(val);
+    auto exp_result = exp(arg);
+    auto diff = fabs(exp_result.AsDouble() - exp(val));
+    BOOST_CHECK_SMALL(diff, 0.2);
+  }
+
+  std::uniform_real_distribution<double> us_int_dist(0.0, 3.0);
+  for (auto i = 0; i < n_samples; ++i) {
+    auto val = us_int_dist(gen);
+    tycheplusplus::FixedPoint<unsigned int,16,16> arg(val);
+    auto exp_result = exp(arg);
+    auto diff = fabs(exp_result.AsDouble() - exp(val));
+    BOOST_CHECK_SMALL(diff, 0.01);
+  }
+
+  std::uniform_real_distribution<double> us_long_dist(0.0, 4.0);
+  for (auto i = 0; i < n_samples; ++i) {
+    auto val = us_long_dist(gen);
+    tycheplusplus::FixedPoint<unsigned long,32,32> arg(val);
+    auto exp_result = exp(arg);
+    auto diff = fabs(exp_result.AsDouble() - exp(val));
+    BOOST_CHECK_SMALL(diff, 0.0000001);
+  }
+
 
 }

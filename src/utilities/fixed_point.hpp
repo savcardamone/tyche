@@ -174,7 +174,7 @@ public:
       if (arg.value_ & 1ULL<<i_frac) {
 	result.value_ =
 	  (static_cast<typename TypePromotion<B>::type>(result.value_) *
-	   exp_frac_lut[F-i_frac-1]) >> F;
+	   (exp_frac_lut[F-i_frac-1] >> (32-F))) >> F;
       }
     }
 
@@ -191,7 +191,7 @@ public:
 	if (integer_part & 1ULL<<i_int) {
 	  result.value_ =
 	    (static_cast<typename TypePromotion<B>::type>(result.value_) << F) /
-	     exp_int_lut[i_int];
+	    (exp_int_lut[i_int] >> (32-F));
 	}
       }
     // If the number is positive, we start from the MSB in the integer part and
@@ -201,7 +201,7 @@ public:
 	if (arg.value_ & 1ULL<<i_int) {
 	  result.value_ =
 	    (static_cast<typename TypePromotion<B>::type>(result.value_) *
-	     exp_int_lut[i_int-F]) >> F;
+	     (exp_int_lut[i_int-F]) >> (32-F)) >> F;
 	}
       }
     }
@@ -218,7 +218,7 @@ private:
   static constexpr B two_power_f_ = (1ULL << F);
 
   // exp[0.5], exp[0.25], exp[0.125], etc... in Q32.32
-  static constexpr unsigned long exp_frac_lut[31] = {
+  static constexpr unsigned long exp_frac_lut[32] = {
     0x00000001a61298e2, 0x0000000148b5e3c4, 0x000000012216045b,
     0x000000011082b578, 0x0000000108205601, 0x0000000104080ab5,
     0x0000000102020156, 0x000000010100802b, 0x0000000100802005,
@@ -229,10 +229,10 @@ private:
     0x0000000100000400, 0x0000000100000200, 0x0000000100000100,
     0x0000000100000080, 0x0000000100000040, 0x0000000100000020,
     0x0000000100000010, 0x0000000100000008, 0x0000000100000004,
-    0x0000000100000002
+    0x0000000100000002, 0x0000000100000001
   };
   // exp[1], exp[2], exp[4], etc... in Q32.32
-  static constexpr unsigned long exp_int_lut[31] = {
+  static constexpr unsigned long exp_int_lut[32] = {
     0x00000002b7e15163, 0x0000000763992e35, 0x0000003699205c4e,
     0x00000ba4f53ea386, 0x0087975e85400100, 0xffffffffffffffff,
     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
@@ -243,7 +243,7 @@ private:
     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
     0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff,
-    0xffffffffffffffff
+    0xffffffffffffffff, 0xffffffffffffffff
   };
 
 };
