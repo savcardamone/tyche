@@ -5,8 +5,6 @@
  */
 #include "multiprocess/multiprocess_communications.hpp"
 #include "output/output_manager.hpp"
-#include "input/input_manager.hpp"
-#include "utilities/fixed_point.hpp"
 
 /**
  * @brief Entry routine for tyche++.
@@ -17,14 +15,7 @@
 int main(int argc, char* argv[]) {
 
   tycheplusplus::MultiProcessCommunications comms;
-  tycheplusplus::OutputManager output(comms.GetCommunicator(), std::cout.rdbuf());
-  output << "tyche++ begins" << std::endl;
-
-  comms.PartitionNodes();
-  comms.Print(output.GetStream());
-  
-  tycheplusplus::InputManager input();
-
-  output << "tyche++ ends." << std::endl;
+  tycheplusplus::OutputManager output(comms.NodeComm(), std::cout.rdbuf());
+  output << comms << std::endl;
 
 }

@@ -19,7 +19,7 @@ class InputManager {
 public:
   InputManager() {
     // Set the global C++ locale to the user-specified locale. Then we can
-    // hopefully use std::cout with UTF-8, via Glib::ustring, without exceptions.
+    // hopefully use std::cout with UTF-8, via Glib::ustring, without exceptions
     std::locale::global(std::locale(""));
     // xml documents will be validated by default
     parser_.set_validate();

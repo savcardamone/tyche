@@ -8,7 +8,7 @@ Author
 """
 
 # Set our required libraries and their paths
-libraries = ['boost_mpi', 'boost_serialization']
+libraries = ['boost_mpi', 'boost_serialization', 'OpenCL']
 library_paths = ['/usr/lib', '/usr/local/lib']
 # Definitions for the pre-processor
 cpp_defines = []

@@ -5,53 +5,32 @@
  */
 #include <set>
 #include <vector>
+#include <boost/mpi/collectives.hpp>
+
 #include "multiprocess/multiprocess_communications.hpp"
 
 namespace tycheplusplus {
 
 /**
- * @brief Class constructor. Initialises communicator as world.
+ * @brief Class constructor. Initialises communicator as world and constructs
+ *        a separate communicator for all processes on a node.
  */
-MultiProcessCommunications::MultiProcessCommunications()
-    : group_id_(0) {}
+MultiProcessCommunications::MultiProcessCommunications() {
 
-/**
- * @brief Class constructor. Explicitly initialise communicator with argument.
- * @param comm Communicator to initialise with
- */
-MultiProcessCommunications::MultiProcessCommunications(
-    boost::mpi::communicator& comm) : group_id_(0), comm_(comm) {}
-
-/**
- * @brief Partition the world communicator into groups based on input index.
- *        We're also able to initialise the group leader communicator with this.
- * @param group_id Index of the group to which the process belongs.
- */
-void MultiProcessCommunications::Partition(const unsigned int& group_id) {
-
-  // Split communicator into groups based on input index
-  group_id_ = group_id;
-  group_comm_ = boost::mpi::communicator(comm_.split(group_id));
-
-}
-
-/**
- * @brief Partition the world communicator into groups based on nodes upon which
-*         processes reside.
- */
-void MultiProcessCommunications::PartitionNodes() {
-
+  static const int master_proc_id = 0;
   // Node ID the process resides on
-  unsigned int node_id = 0;
+  int node_id = 0;
 
   // If this is the master process, gather the processor name from all other
   // processes
-  if (comm_.rank() == 0) {
+  if (world_comm_.rank() == 0) {
 
     // Gather all process processor names
     std::vector<std::string> processor_names;
     boost::mpi::gather(
-        comm_, boost::mpi::environment::processor_name(), processor_names, 0);
+        world_comm_, boost::mpi::environment::processor_name(),
+	processor_names, master_proc_id
+    );
 
     // Initialise the set with the vector. Removes duplicates
     std::set<std::string> set_names(
@@ -60,43 +39,51 @@ void MultiProcessCommunications::PartitionNodes() {
     // Get the node index of the master process. Note that this isn't
     // necessarily zero
     node_id = std::distance(
-        set_names.begin(), set_names.find(processor_names[0]));
+        set_names.begin(), set_names.find(processor_names[master_proc_id]));
 
     // Loop through the processor name for each process and locate its "index"
     // from the unique set
-    for (int i_proc = 1; i_proc < comm_.size(); ++i_proc) {
+    for (int i_proc = master_proc_id+1; i_proc < world_comm_.size(); ++i_proc) {
       int message = std::distance(
           set_names.begin(), set_names.find(processor_names[i_proc]));
-      comm_.send(i_proc, 0, message);
+      world_comm_.send(i_proc, 0, message);
     }
 
   // If this is a slave process, send the process name to the master slave
   } else {
 
     // Send processor name to master process
-    boost::mpi::gather(comm_, boost::mpi::environment::processor_name(), 0);
+    boost::mpi::gather(
+        world_comm_, boost::mpi::environment::processor_name(), 0
+    );
+
     // Receive a node index from the master process
-    comm_.recv(0, 0, node_id);
+    world_comm_.recv(master_proc_id, 0, node_id);
 
   }
 
-  // Perform the communicator partitioning
-  Partition(node_id);
-
+  // Split communicator into groups based on input index
+  node_comm_ = boost::mpi::communicator(world_comm_.split(node_id));
+  
 }
 
 /**
- * @brief Print some generic information about the communicators in the object.
- * @param stream Output stream to dump information to.
+ * @brief Dump some information about the multiprocess communications to an
+ *        ostream.
+ * @param os An output stream iterator.
+ * @param m MultiProcessCommunications object we're dumping.
+ * @retval An output stream iterator.
  */
-void MultiProcessCommunications::Print(std::ostream& stream) const {
+std::ostream& operator<<(std::ostream& os, const MultiProcessCommunications& m) {
 
-  stream << " === MultiProcessCommunications" << std::endl ;
-  stream << "     " << comm_.rank() << " of " << comm_.size()
-         << " processes in world." << std::endl ;
-  stream << "     " << group_comm_.rank() << " of " << group_comm_.size()
-         << " processes in group." << std::endl ;
+  os << " === MultiProcessCommunications" << std::endl ;
+  os << "     " << m.WorldComm().rank() << " of " << m.WorldComm().size()
+     << " processes in world." << std::endl ;
+  os << "     " << m.NodeComm().rank() << " of " << m.NodeComm().size()
+     << " processes on node." << std::endl ;
 
+  return os;
+  
 }
 
 } /* namespace tycheplusplus */

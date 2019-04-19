@@ -109,5 +109,4 @@ BOOST_AUTO_TEST_CASE( exponential ) {
     BOOST_CHECK_SMALL(diff, 0.0000001);
   }
 
-
 }
