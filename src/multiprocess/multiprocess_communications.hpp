@@ -28,10 +28,22 @@ public:
   const boost::mpi::communicator& NodeComm() const { return node_comm_; }
   boost::mpi::communicator& NodeComm() { return node_comm_; }
 
+  inline int WorldSize() const { return WorldComm().size(); }
+  inline int NodeSize() const { return NodeComm().size(); }
+
+  inline int WorldRank() const { return WorldComm().rank(); }
+  inline int NodeRank() const { return NodeComm().rank(); }
+
+  inline int NodeID() const { return node_id_; }
+
+  inline bool IsWorldMaster() const { return WorldRank() == 0 ? true : false; }
+  inline bool IsNodeMaster() const { return NodeRank() == 0 ? true : false; }
+
   friend std::ostream& operator<<(std::ostream& os,
 				  const MultiProcessCommunications& m);
   
 private:
+  int node_id_;
   boost::mpi::environment env_;
   boost::mpi::communicator world_comm_, node_comm_;
 

@@ -23,25 +23,30 @@ public:
    * @param comm_ Communicator for initialisation.
    */
   MultiProcessBase(boost::mpi::communicator& comm) : comm_(comm) {}
-
-protected:
+  
+  /**
+   * @brief Return the communicator.
+   * @retval The communicator.
+   */
+  inline const boost::mpi::communicator& Comm() const { return comm_; }
+  
   /**
    * @brief Return the size of the communicator.
    * @retval Number of processes in the communicator.
    */
-  inline int Size() const { return comm_.size(); }
+  inline int Size() const { return Comm().size(); }
 
   /**
    * @brief Return the rank of the process on the communicator.
    * @retval Rank of the process.
    */
-  inline int Rank() const { return comm_.rank(); }
+  inline int Rank() const { return Comm().rank(); }
 
   /**
    * @brief Query whether the process in the communicator master.
    * @retval True if it's master (i.e. rank zero), false otherwise.
    */
-  inline bool IsMaster() const { return comm_.rank() == 0 ? true : false; }
+  inline bool IsMaster() const { return Comm().rank() == 0 ? true : false; }
 
 private:
   // Communicator the deriving object can use

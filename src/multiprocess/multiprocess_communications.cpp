@@ -19,7 +19,7 @@ MultiProcessCommunications::MultiProcessCommunications() {
 
   static const int master_proc_id = 0;
   // Node ID the process resides on
-  int node_id = 0;
+  node_id_ = 0;
 
   // If this is the master process, gather the processor name from all other
   // processes
@@ -29,7 +29,7 @@ MultiProcessCommunications::MultiProcessCommunications() {
     std::vector<std::string> processor_names;
     boost::mpi::gather(
         world_comm_, boost::mpi::environment::processor_name(),
-	processor_names, master_proc_id
+	      processor_names, master_proc_id
     );
 
     // Initialise the set with the vector. Removes duplicates
@@ -38,7 +38,7 @@ MultiProcessCommunications::MultiProcessCommunications() {
 
     // Get the node index of the master process. Note that this isn't
     // necessarily zero
-    node_id = std::distance(
+    node_id_ = std::distance(
         set_names.begin(), set_names.find(processor_names[master_proc_id]));
 
     // Loop through the processor name for each process and locate its "index"
@@ -58,12 +58,12 @@ MultiProcessCommunications::MultiProcessCommunications() {
     );
 
     // Receive a node index from the master process
-    world_comm_.recv(master_proc_id, 0, node_id);
+    world_comm_.recv(master_proc_id, 0, node_id_);
 
   }
 
   // Split communicator into groups based on input index
-  node_comm_ = boost::mpi::communicator(world_comm_.split(node_id));
+  node_comm_ = boost::mpi::communicator(world_comm_.split(node_id_));
   
 }
 
@@ -76,11 +76,8 @@ MultiProcessCommunications::MultiProcessCommunications() {
  */
 std::ostream& operator<<(std::ostream& os, const MultiProcessCommunications& m) {
 
-  os << " === MultiProcessCommunications" << std::endl ;
-  os << "     " << m.WorldComm().rank() << " of " << m.WorldComm().size()
-     << " processes in world." << std::endl ;
-  os << "     " << m.NodeComm().rank() << " of " << m.NodeComm().size()
-     << " processes on node." << std::endl ;
+  os << m.WorldRank() << " of " << m.WorldSize() << " processes in world." << std::endl ;
+  os << m.NodeRank()  << " of " << m.NodeSize()  << " processes on node."  << std::endl ;
 
   return os;
   
