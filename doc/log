@@ -1,0 +1,38 @@
+-*- mode: org -*-
+#+TITLE: tyche++: Development Notes
+#+AUTHOR: Salvatore Cardamone
+#+EMAIL: sav.cardamone@gmail.com
+
+* Roadmap
+
+** Stage 1
+
+*** Output
+
+    Basic Molecular Dynamics Simulator
+    
+*** Notes
+
+    Will base this off the miniMD codebase of C.R. Trott at Sandia. This is a minimal molecular dynamics implementation
+    capable of EAM and LJ potentials for single-atomtype systems. It has OpenMP and MPI ports (and supports some kind of
+    domain decomposition). Unsure about vectorisation capabilities, but presuambly has components which are auto-vectorised
+    at a minimum.
+
+    The major classes here are:
+
+**** TODO Integrate
+
+**** TODO Neighbor
+
+**** TODO Thermo
+
+**** TODO Force
+
+**** DONE Atom
+     Uses     : Neighbor.
+     Function : General system container. Initialised once requested density and box volume is known. 
+                Has following functionality:
+                   - Grow: Wrapper around realloc.
+                   - PBC: Enforce periodic boundary conditions on simulation cell.
+                   - Pack/Unpack: Compress/Decompress data in arrays to remove/add any padding. For comm buffers.
+                   - Sort: For the neighbour list (?)
