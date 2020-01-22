@@ -14,33 +14,11 @@ class AtomicOrbital():
     """Container for an atomic orbital, along with evaluation routines.
     """
 
-    def __init__(self, centre=None, coeffs=None, zetas=None, ang_mom=(0,0,0)):
+    def __init__(self, centre, coeffs, zeta, ang_mom, normalise_ao=True):
         """Class constructor.
-        Initialise the atomic orbital's centre and primitive coefficients/exponents.
-        We also initialise the angular momentum of the orbital, although default it to being
-        spherically symmetric.
-        """
-
-        def normalise(self):
-            """Normalise the atomic orbital so that it's self-overlap is unity. Taken verbatim from
-            Fermann & Valeev document on integral evaluation, equation (2.25)
-            """
-
-            tot_ang_mom = ang_mom[0] + ang_mom[1] + ang_mom[2]
-            prefactor_part = (sp.factorial2(2*ang_mom[0]-1)*sp.factorial2(2*ang_mom[1]-1)*sp.factorial2(2*ang_mom[2]-1)) / np.power(2, tot_ang_mom)
-            prefactor = 1 / np.sqrt(np.power(np.pi, 1.5) * prefactor_part)
-
-            summation = 0.0
-            for iprim in range(len(self.coeffs)):
-                for jprim in range(len(self.coeffs)):
-                    summation += self.coeffs[iprim] * self.coeffs[jprim] / np.power(self.zetas[iprim] + self.zetas[jprim], tot_ang_mom + 1.5)
-
-            N = prefactor / np.sqrt(summation)
-            for iprim in range(len(self.coeffs)):
-                self.coeffs[iprim] /= N
-
-        if (type(centre) is not np.ndarray) or (type(coeffs) is not np.ndarray) or (type(zetas) is not np.ndarray):
-            sys.exit("Input arguments to AtomicOrbital constructor must be numpy arrays.")
+        Initialise the atomic orbital's centre, primitive coefficients/exponents and
+        angular momentum. Normalise the AO if the user wants.
+        """        
         if len(coeffs) != len(zetas):
             sys.exit("Nunber of coefficients must match number of exponents.")
         if len(centre) != 3 or len(ang_mom) != 3:
@@ -52,7 +30,8 @@ class AtomicOrbital():
         self.ang_mom = ang_mom
 
         # Normalise the primitive expansion
-        normalise(self)
+        if normalise_ao == True:
+            self.normalise()
 
     def __str__(self):
         """Object string representation.
@@ -66,14 +45,19 @@ class AtomicOrbital():
             "   Ang. Mom.   : {4}".format(len(self.coeffs), self.centre, self.coeffs, self.zetas, self.ang_mom)
 
     @classmethod
-    def from_atom(cls, atom, basis_set_file=None):
-        
-        xml = untangle.parse(basis_set_file)
-        atomic_basis_sets = xml.Wavefunction.Basis
+    def from_atom(cls, atom, input_file):
+        """Take an atom and construct a list of atomic orbitals that should be
+        associated with it to be appended to the system's LCAO.
+        """
+        # Pull out the level of the xml we want to be looping through
+        xml = untangle.parse(input_file)
+        atomic_basis_sets = xml.Input.Wavefunction.Basis
 
         aos = []
+        # Loop over atomic basis sets specified in the file until we find the appropriate one
         for atomic_basis_set in atomic_basis_sets:
             if atomic_basis_set['atom'] == atom.atom_type:
+                # Loop over AOs in this contraction and append each to the LCAO
                 for contraction in atomic_basis_set.Contraction:
                     aos.append(cls(
                         np.transpose(atom.pos[0]),
@@ -88,7 +72,25 @@ class AtomicOrbital():
             sys.exit("Could not find atomic basis for atom type {0}".format(atom.atom_type))
             
         return aos
-            
+
+    def normalise(self):
+        """Normalise the atomic orbital so that it's self-overlap is unity. Taken verbatim from
+        Fermann & Valeev document on integral evaluation, equation (2.25)
+        """
+
+        tot_ang_mom = ang_mom[0] + ang_mom[1] + ang_mom[2]
+        prefactor_part = (sp.factorial2(2*ang_mom[0]-1)*sp.factorial2(2*ang_mom[1]-1)*sp.factorial2(2*ang_mom[2]-1)) / np.power(2, tot_ang_mom)
+        prefactor = 1 / np.sqrt(np.power(np.pi, 1.5) * prefactor_part)
+        
+        summation = 0.0
+        for iprim in range(len(self.coeffs)):
+            for jprim in range(len(self.coeffs)):
+                summation += self.coeffs[iprim] * self.coeffs[jprim] / np.power(self.zetas[iprim] + self.zetas[jprim], tot_ang_mom + 1.5)
+
+        N = prefactor / np.sqrt(summation)
+        for iprim in range(len(self.coeffs)):
+            self.coeffs[iprim] /= N
+    
     def evaluate(self, pos):
         """Evaluate the atomic orbital at a given position.
         """
