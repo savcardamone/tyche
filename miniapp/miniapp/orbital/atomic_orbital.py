@@ -8,15 +8,7 @@ __email__       = "sav.cardamone@gmail.com"
 import sys
 import numpy as np
 import scipy.special as sp
-
-### TODO
-### This should all be factored out to some data file at some point, but it should be OK for the moment.
-h_sto6g_zeta  = np.array([[35.52322122, 6.513143725, 1.822142904, 0.6259552659, 0.2430767461, 0.100112480]])
-h_sto6g_coeff = np.array([[ 0.09163596, 0.049361493, 0.168538305, 0.3705627997, 0.4164915298, 0.130334084]])
-h_sto6g_angmom = np.array([(0, 0, 0)])
-AtomicBasis = {
-    'H' : {'STO-6G' : { 'Zeta' : h_sto6g_zeta, 'Coeff' : h_sto6g_coeff, 'AngMom' : h_sto6g_angmom }}
-}
+import untangle
 
 class AtomicOrbital():
     """Container for an atomic orbital, along with evaluation routines.
@@ -74,21 +66,29 @@ class AtomicOrbital():
             "   Ang. Mom.   : {4}".format(len(self.coeffs), self.centre, self.coeffs, self.zetas, self.ang_mom)
 
     @classmethod
-    def from_atom(cls, atom, basis_set="STO-6G"):
-        """Construct a list of atomic orbitals belonging to an atom, as designated by
-        the requested basis set.
-        """
+    def from_atom(cls, atom, basis_set_file=None):
+        
+        xml = untangle.parse(basis_set_file)
+        atomic_basis_sets = xml.Wavefunction.Basis
 
         aos = []
-        try:
-            basis = AtomicBasis[atom.atom_type][basis_set]
-            for iao in range(basis['Coeff'].shape[0]):
-                aos.append(cls(np.transpose(atom.pos[0]), np.array(basis['Coeff'][iao]), np.array(basis['Zeta'][iao]), basis['AngMom'][iao]))
-        except KeyError:
-            sys.exit("Atomic basis combination {0} and {1} not found.".format(atom.atom_type, basis_set))
-
+        for atomic_basis_set in atomic_basis_sets:
+            if atomic_basis_set['atom'] == atom.atom_type:
+                for contraction in atomic_basis_set.Contraction:
+                    aos.append(cls(
+                        np.transpose(atom.pos[0]),
+                        np.fromstring(contraction.Zeta.cdata, dtype=float, sep=','),
+                        np.fromstring(contraction.Coeff.cdata, dtype=float, sep=','),
+                        np.fromstring(contraction.AngMom.cdata, dtype=int, sep=',')
+                    ))
+                if len(aos) != int(atomic_basis_set['num_funcs']):
+                    sys.exit("Number of AOs parsed ({0}) does not equal the number designated ({1})".format(len(aos), int(atomic_basis_set['num_funcs'])))
+                    
+        if not aos:
+            sys.exit("Could not find atomic basis for atom type {0}".format(atom.atom_type))
+            
         return aos
-
+            
     def evaluate(self, pos):
         """Evaluate the atomic orbital at a given position.
         """
