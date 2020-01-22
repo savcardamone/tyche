@@ -1,0 +1,8 @@
+### FILE: requirements.txt
+### AUTHOR: Salvatore Cardamone
+### DESCRIPTION: pip requirements file. Simply issue 
+###              $> pip install -r requirements.txt
+
+numpy >= 1.16
+scipy >= 1.4
+matplotlib >= 3.0
