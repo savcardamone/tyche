@@ -1,5 +1,4 @@
-from numpy.random import randint, normal, zeros
-from numpy.linalg import norm
+import numpy as np
 
 class Walker():
 
@@ -11,7 +10,7 @@ class Walker():
             """Place an electron within the van der Waals radius of a random atom,
             weighted by its nuclear charge.
             """
-            random_centre = randint(low=0, high=system.tot_z)
+            random_centre = np.random.randint(low=0, high=system.tot_z)
             acc_z = 0; selected_centre = 0
             for iatom in range(system.num_atoms):
                 acc_z += system.atoms[iatom].Z
@@ -20,10 +19,10 @@ class Walker():
                     break
 
             # Return a Gaussian variate centred on the chosen atom
-            return normal(system.atoms[selected_centre].pos, 2.0, size=3)
+            return np.random.normal(system.atoms[selected_centre].pos, 2.0, size=3)
 
         # Initialise the array to store the alpha and beta electrons
-        self.pos = (zeros((wfn.num_alpha,3)), zeros(wfn.num_beta,3))
+        self.pos = (np.zeros((wfn.num_alpha,3)), np.zeros(wfn.num_beta,3))
 
         # Initialise alpha-spin electrons
         for ialpha in range(wfn.num_alpha):
@@ -33,8 +32,7 @@ class Walker():
             self.pos[0][ibeta,:] = place_electron(system)
         
     def __str__(self):
-
-
+        pass
 
     def electron_nuclear_attraction(self, system):
         """Compute the nuclear-electron attractive potential energy contribution to
@@ -47,17 +45,13 @@ class Walker():
         for iatom in range(system.num_atoms):
             for ialpha in range(self.pos[0].shape[0]):
                 Rij = self.pos[0][ialpha,:] - system.atoms[iatom].pos
-                vne -= system.atoms[iatom].Z / sqrt(norm(Rij))
+                vne -= system.atoms[iatom].Z / np.sqrt(np.linalg.norm(Rij))
                 
             for ibeta in range(self.pos[1].shape[0]):
                 Rij = self.pos[0][ibeta,:] - system.atoms[iatom].pos
-                vne -= system.atoms[iatom].Z / sqrt(norm(Rij))
+                vne -= system.atoms[iatom].Z / np.sqrt(np.linalg.norm(Rij))
 
         return vne
                 
     def electron_electron_repulsion(self):
-
-        vee = 0.0
-        
-         =
-        for
+        pass
