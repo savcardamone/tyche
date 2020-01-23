@@ -8,6 +8,7 @@ __email__       = "sav.cardamone@gmail.com"
 import os
 import unittest as ut
 import numpy as np
+import tempfile
 
 from test import test_base
 from miniapp.system import system, atom
@@ -30,19 +31,18 @@ class TestSystem(ut.TestCase):
 
             # Dump the System object to an xml file
             test_system_xml_string = test_system.as_xml()
-            with open("temp.xml", "w+") as f:
-                f.write("<Input>")
-                f.write(str(test_system_xml_string, 'utf-8'))
-                f.write("</Input>")
-
-            # Read the xml file we've juse dumped into another System object
-            retest_system = system.System("temp.xml")
-
+            # Dump the xml into /tmp
+            temp_file, temp_filename = tempfile.mkstemp()
+            with os.fdopen(temp_file, 'w') as tmp:
+                tmp.write("<Input>")
+                tmp.write(str(test_system_xml_string, 'utf-8'))
+                tmp.write("</Input>")
+            # Read the xml file we've just dumped into another System object
+            retest_system = system.System(temp_filename)
+            
             # Verify System object equality
             self.assertEqual(test_system.num_atoms, retest_system.num_atoms)
             for a, b in zip(test_system.atoms, retest_system.atoms):
                 self.assertEqual(a.atom_type, b.atom_type)
                 self.assertEqual(a.pos.tolist(), b.pos.tolist())
                 self.assertEqual(a.Z, b.Z)
-
-            os.remove("temp.xml")
