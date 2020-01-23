@@ -45,16 +45,14 @@ class System():
 
         return sys_string
 
-    def write_xml(self, output_file):
+    def as_xml(self):
         """Dump the System object to an output file in xml format. System will be to root.
         """
-        root_xml = et.Element("Input")
-        sys_xml = et.SubElement(root_xml, "System", num_atoms="{0}".format(self.num_atoms))
+        sys_xml = et.Element("System", num_atoms="{0}".format(self.num_atoms))
         for atom in self.atoms:
             atom_xml = et.SubElement(sys_xml, "Atom", type="{0}".format(atom.atom_type), pos="{0}".format(atom.pos.tolist()).strip("[]"))
 
-        tree_xml = et.ElementTree(root_xml)
-        tree_xml.write(output_file)
+        return et.tostring(sys_xml)
             
     def nuclear_repulsion(self):
         """Compute the nuclear-nuclear repulsion energy arising in the system.

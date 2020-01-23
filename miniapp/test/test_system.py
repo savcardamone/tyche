@@ -27,7 +27,15 @@ class TestSystem(ut.TestCase):
             
             print("Working on input file: {0}".format(test_file))
             test_system = system.System("{0}".format(test_file))
-            test_system.write_xml("temp.xml")
+
+            # Dump the System object to an xml file
+            test_system_xml_string = test_system.as_xml()
+            with open("temp.xml", "w+") as f:
+                f.write("<Input>")
+                f.write(str(test_system_xml_string, 'utf-8'))
+                f.write("</Input>")
+
+            # Read the xml file we've juse dumped into another System object
             retest_system = system.System("temp.xml")
 
             # Verify System object equality
