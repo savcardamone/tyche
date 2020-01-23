@@ -7,6 +7,7 @@ __email__       = "sav.cardamone@gmail.com"
 
 import numpy as np
 import untangle
+import xml.etree.cElementTree as et
 
 from miniapp.system import atom
 
@@ -44,6 +45,17 @@ class System():
 
         return sys_string
 
+    def write_xml(self, output_file):
+        """Dump the System object to an output file in xml format. System will be to root.
+        """
+        
+        root_xml = et.Element("System", num_atoms=self.num_atoms)
+        for atom in self.atoms:
+            atom_xml = et.SubElement(root_xml, "Atom", atom_type=atom.atom_type, pos=atom.pos.tolist())
+
+        tree_xml = et.ElementTree(root_xml)
+        tree_xml.write(output_file)
+            
     def nuclear_repulsion(self):
         """Compute the nuclear-nuclear repulsion energy arising in the system.
         """
