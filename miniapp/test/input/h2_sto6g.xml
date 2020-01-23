@@ -9,8 +9,10 @@
     <Atom type="H" pos="0.0, 0.0, 1.0"/>
   </System>
 
-  <!-- Wavefunction and Basis Set listing -->
+  <!-- Wavefunction listing -->
   <Wavefunction>
+
+    <!-- Atomic Basis Set -->
     <Basis atom="H" num_funcs="1">
       <Contraction>
 	<Zeta> 35.52322122, 6.513143725, 1.822142904, 0.6259552659, 0.2430767461, 0.100112480 </Zeta>
@@ -18,6 +20,12 @@
 	<AngMom> 0, 0, 0 </AngMom>
       </Contraction>
     </Basis>
+    
+    <!-- Molecular Orbitals -->
+    <MolecularOrbitals num_alpha="1" num_beta="1">
+      <Coefficients spin="Both"> 0.15,  0.15 </Coefficients>
+    </MolecularOrbitals>
+
   </Wavefunction>
 
 </Input>

@@ -1,50 +1,33 @@
-import unittest
-from numpy import array, transpose, zeros
+#!/usr/bin/env python
 
-# Plotting-based imports
-from numpy import meshgrid, linspace
-import matplotlib.pyplot as plt
+"""test_slater.py: Verify the Slater class functions as it's meant to."""
 
-from qmc.System import System
-from qmc.Wavefunction import Slater
+__author__      = "Salvatore Cardamone"
+__email__       = "sav.cardamone@gmail.com"
 
-class TestSlater(unittest.TestCase):
+import numpy as np
+import unittest as ut
+
+from test import test_base
+from miniapp.system import system
+from miniapp.wavefunction import slater
+
+class TestSlater(ut.TestCase):
 
     def test_1(self):
-        """Build a STO-6G RHF wavefunction for H2.
+        """Build Slater wavefunctions for each of the test files.
         """
-        print("\n")
-
-        system_config = [('H', 0.0, 0.0, 0.0), ('H', 1.0, 0.0, 0.0)]
-        system = System.System(system_config)
-
-        mo_coeffs = (zeros((1,2)) + array([0.153, 0.153]), zeros((1,2)) + array([0.153, 0.153]))
-        eval_pos = (zeros((1,3)) + array([1.0, 1.0, 1.0]), zeros((1,3)) + array([-1.0, -1.0, -1.0]))
-
-        wfn = Slater.Slater(eval_pos, system, mo_coeffs)
-        print(wfn)        
-
-        # Want to scan between [-1, 2] along x-axis and [-1, 1] along y-axis
-        nx = 200; ny = 200
-        wfn_vals = zeros((nx,ny))
-        xx, yy = meshgrid(linspace(-1, 2, nx), linspace(-1, 1, ny), sparse=False, indexing='ij')
-        for ix in range(nx):
-            for iy in range(ny):
-                eval_pos = (zeros((1,3)) + array([-1 + ix*(3/nx), -1 + iy*(2/ny), 0]), zeros((1,3)) + array([0.0, 0.0, 0.0]))
-                wfn.evaluate(eval_pos)
-                wfn_vals[ix,iy] = wfn.value()
+        test_files = test_base.grab_input_files()
         
-        fig, ax = plt.subplots()
-        contours = ax.contour(xx, yy, wfn_vals)
-        ax.clabel(contours, fontsize=9, inline=1)
-        ax.set_xlabel("x / $\AA$")
-        ax.set_ylabel("y / $\AA$")
-        ax.set_title("H$_2$ STO-6G Wavefunction")
-        ax.scatter(0.0, 0.0)
-        ax.scatter(1.0, 0.0)
-        ax.annotate("H", (0.0, 0.0))
-        ax.annotate("H", (1.0, 0.0))
-        plt.show()
-        
-if __name__ == "__main__":
-    unittest.main()
+        print("TODO: No numerical verification has been added to this yet.")
+        for test_file in test_files:
+            
+            print("Working on input file: {0}".format(test_file))
+            
+            test_system = system.System("{0}".format(test_file))
+            test_slater = slater.Slater(test_system, "{0}".format(test_file))
+
+            test_walker = (np.array([[1.0, 1.0, 1.0]]), np.array([[1.0, 1.0, 1.0]]))
+            test_slater.evaluate(test_walker)
+            print(test_slater)
+            
