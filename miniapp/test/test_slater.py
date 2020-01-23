@@ -25,9 +25,9 @@ class TestSlater(ut.TestCase):
             print("Working on input file: {0}".format(test_file))
             
             test_system = system.System("{0}".format(test_file))
-            test_slater = slater.Slater(test_system, "{0}".format(test_file))
+            slater.Slater.initialise_parameters(test_system, "{0}".format(test_file)) 
+            test_slater = slater.Slater()
 
             test_walker = (np.array([[1.0, 1.0, 1.0]]), np.array([[1.0, 1.0, 1.0]]))
             test_slater.evaluate(test_walker)
-            print(test_slater)
             
