@@ -48,10 +48,10 @@ class System():
     def write_xml(self, output_file):
         """Dump the System object to an output file in xml format. System will be to root.
         """
-        
-        root_xml = et.Element("System", num_atoms=self.num_atoms)
+        root_xml = et.Element("Input")
+        sys_xml = et.SubElement(root_xml, "System", num_atoms="{0}".format(self.num_atoms))
         for atom in self.atoms:
-            atom_xml = et.SubElement(root_xml, "Atom", atom_type=atom.atom_type, pos=atom.pos.tolist())
+            atom_xml = et.SubElement(sys_xml, "Atom", type="{0}".format(atom.atom_type), pos="{0}".format(atom.pos.tolist()).strip("[]"))
 
         tree_xml = et.ElementTree(root_xml)
         tree_xml.write(output_file)
