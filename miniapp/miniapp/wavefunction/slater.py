@@ -119,8 +119,17 @@ class Slater():
             self.beta  = np.dot(Slater.mo_coeffs[1], beta_elec_aos)
             self.beta_det = np.linalg.det(self.beta)
 
-    def update(self, pos, iel):
+    def update(self, new_pos, iel, spin):
         """Sherman-Morrison update of the appropriate spin-Slater matrix and
         corresponding determinant.
         """
+        if ispin == "Alpha":
+            new_mos = np.dot(Slater.mo_coeffs[0], np.transpose(Slater.aos.evaluate(new_pos)))
+            delta_mos = new_mos - self.alpha[:,iel] 
+        elif ispin == "Beta":
+            new_mos = np.dot(Slater.mo_coeffs[1], np.transpose(Slater.aos.evaluate(new_pos)))
+            delta_mos = new_mos - self.beta[:,iel]
+        else:
+            sys.exit("Don't understand the spin-state {0}".format(spin))
+            
         print("Sherman-Morrison updating unsupported.")
