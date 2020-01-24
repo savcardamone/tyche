@@ -24,9 +24,10 @@ class System():
         system_root = untangle.parse(input_file).Input.System
         self.num_atoms = int(system_root['num_atoms'])
 
-        self.atoms = []
+        self.atoms = []; self.tot_z = 0
         for xml_atom in system_root.Atom:
             self.atoms.append(atom.Atom(xml_atom['type'], np.fromstring(xml_atom['pos'], dtype=float, sep=',')))
+            self.tot_z += self.atoms[-1].Z
             
         if not self.atoms:
             sys.exit("No atoms were specified in the input file.")
