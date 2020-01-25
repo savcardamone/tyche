@@ -1,0 +1,289 @@
+-*- mode: org -*-
+#+TITLE: tyche++: Notes and Investigations on Performance
+#+AUTHOR: Salvatore Cardamone
+#+EMAIL: sav.cardamone@gmail.com
+
+* Purpose
+
+  The purpose of this document is to reason through various (aspirational) high-performance
+  aspects of the application. As much justification is given as possible for choices which
+  have been made, and comparative studies are undertaken to verify that the proposed
+  solution is correct.
+  
+  Ultimately, the aim of tyche++ is to be as high-performance as possible, without  *any*
+  architecture or compiler dependencies. Intrinsics, assembler and whatever else should
+  not feature unless absolutely necessary. 
+
+* TODO Building Details
+  
+  Benchmarks are undertaken with a Intel(R) Core(TM) i7-6800K CPU @ 3.40GHz, which
+  possesses 6 physical cores and supports SSE, SSE2, AVX and AVX2 vector instructions.
+
+  We use icc v18.0.3 with -std=c++17 and -O3 flags. By default, with any level of
+  optimization beyond -O2, icc will default to SSE2 vector instructions. As such, we are
+  required to disable this with -no-vec, and subsequently request the type of vectorization
+  we desire with the -x<VECTOR> flag.
+  
+* TODO Containers
+  
+** Rant
+
+  I've always been dissuaded from using C++ in a project whose goal is to be
+  high-performance. I'm rather ignorant with regards to the type of
+  container which should be used to store numerical data which is going to be
+  subjected to a lot of computation. In contrast, C is extremely straightforward:
+  you can either have stack or heap allocated arrays.
+
+  Along with the idea of the container, comes the question of whether you should
+  try to act like a C++ purist and use iterators and the likes so that the code
+  is container-independent. Not to mention querying whether templated programming
+  is actually high-performance. Then there's the question of whether you should
+  use containers used in library packages like Boost and Armadillo. It all seems
+  like something of a nightmare... 
+
+  This section is probably going to be an ongoing thing, where I attempt to educate 
+  myself on what the hell I should be using.
+
+* DONE Vectorisation and Cache-Conscious Access Patterns
+
+** DONE Vectorisation
+
+  We'll concern ourselves with accessing an array of 3D position vectors here.
+  Consider two separate data layouts, for the purposes of computing pairwise
+  distances:
+
+  - Contiguous : $\{ x_1, \dots, x_n, y_1, \dots, y_n, z_1, \dots, z_n \}$
+  - Triplets   : $\{ x_1, y_1, z_1, \dots, x_n, y_n, z_n \}$
+
+  The former is referred to as a "struct of arrays", or SoA, while the latter
+  is an "array of structs", or AoS. Computing pairwise distances using these
+  two data layouts can be undertaken as in the following functions:
+
+#+NAME: ContiguousAccessPattern
+#+BEGIN_SRC C++ :includes '("<vector>" "<chrono>" "<iostream>") :flags "-std=c++17 -O3" :tangle tangle/contiguous.cpp
+  const unsigned nDims = 3, nAtoms = 65536 ;
+
+  const std::vector<float> pos_x( nAtoms ), pos_y( nAtoms ), pos_z( nAtoms ) ;
+  std::vector<float> acc( nAtoms, 0.0 ) ;
+  std::vector<float>::const_iterator ix, iy, iz ;
+  std::vector<float>::const_iterator jx, jy, jz ;
+  std::vector<float>::iterator jacc ;
+
+  /**
+   ,* Contiguous Dimensions Case
+   ,*/
+  auto contig_start = std::chrono::high_resolution_clock::now() ;
+  ix = pos_x.begin(), iy = pos_y.begin(), iz = pos_z.begin() ;
+  for( ; ix != pos_x.end() ; ++ix, ++iy, ++iz ) {
+    jx = pos_x.begin(), jy = pos_y.begin(), jz = pos_z.begin() ;
+    jacc = acc.begin() ;
+    for( ; jx != pos_x.end() ; ++jx, ++jy, ++jz, ++jacc ) {
+      // Vector difference
+      const float dx = (*ix) - (*jx) ;
+      const float dy = (*iy) - (*jy) ;
+      const float dz = (*iz) - (*jz) ;
+      // Square distance between vectors
+      (*jacc) += dx*dx + dy*dy + dz*dz ;
+    }
+   }
+  auto contig_end = std::chrono::high_resolution_clock::now() ;
+  auto contig_time =
+    std::chrono::duration_cast<std::chrono::milliseconds>( contig_end - contig_start ).count() ;
+  std::cout << " Contiguous Time : " << contig_time << std::endl ;
+
+#+END_SRC
+#+RESULTS: ContiguousAccessPattern
+: Contiguous Time : 11640
+
+#+NAME: TripletAccessPattern
+#+BEGIN_SRC C++ :includes '("<vector>" "<chrono>" "<iostream>") :flags "-std=c++17 -O3" :tangle tangle/triplet.cpp
+  const unsigned nDims = 3, nAtoms = 65536 ;
+
+  std::vector<float> triplets( nDims * nAtoms ) ;
+  std::vector<float> acc( nAtoms, 0.0 ) ;
+
+  /**
+   ,* Triplet Case
+   ,*/
+  auto triplet_start = std::chrono::high_resolution_clock::now() ;
+  for( unsigned iVec=0 ; iVec<nAtoms ; ++iVec ) {
+    // Get the iVec'th position vector
+    unsigned i = iVec * nDims ;
+    float xi = triplets[i], yi = triplets[i+1], zi = triplets[i+2] ;
+    for( unsigned jVec=0 ; jVec<nAtoms ; ++jVec ) {
+      // Get the jVec'th position vector
+      unsigned j = jVec * nDims ;
+      float xj = triplets[j], yj = triplets[j+1], zj = triplets[j+2] ;
+      // Vector difference
+      float dx = xi - xj, dy = yi - yj, dz = zi - zj ;
+      // Square distance between vectors
+      acc[jVec] += dx*dx + dy*dy + dz*dz ;
+    }
+   }
+  auto triplet_end = std::chrono::high_resolution_clock::now() ;
+  auto triplet_time =
+    std::chrono::duration_cast<std::chrono::milliseconds>( triplet_end - triplet_start ).count() ;
+  std::cout << " Triplet Time : " << triplet_time << std::endl ;
+#+END_SRC
+#+RESULTS: TripletAccessPattern
+: Triplet Time : 26588
+
+  This is quite an astounding difference! Whence commeth such a discrepancy? 
+  Entirely from the capacity to vectorise the innermost loop. In the contiguous
+  case, auto-vectorisation by the compiler is fairly straightforward: all arrays
+  have unit stride between iterations, so the kernel maps trivially to 
+  computation through vectorisation..
+
+  In contrast, there is a stride of 3 in the array accesses between loop
+  iterations, making it difficult for the compiler to vectorise the loop. For
+  the machine I've just run this example with, I'm limited to SSE2, i.e. a 128-bit
+  wide vector register for SIMD. Theoretically, I should consequently obtain a
+  fourfold acceleration from the vectorization, but in reality I'm hovering around
+  threefold, which is still an appreciable acceleration! I can probably improve this
+  from increasing the problem complexity.
+
+  With regards to cache behaviour, there's no real reason why one data format
+  should trump the other. For our case, all the particles fit into the L3 cache,
+  so the only scope for differences lies in the efficiency of transferring data to
+  the L1 cache: small differences will then map into largely irrelevant timing
+  differences.
+
+  It is worth noting that I'm only able to vectorise in the contiguous case because
+  the variable is indexed by the innermost loop, i.e. the operations I'm vectorising.
+  If I changed the accumulation index to that of the outermost loop, the compiler
+  wouldn't be able to vectorize the loop since there is a clash amongst vector units:
+  the accumulation must be done in serial, thereby destroying parallelism.
+  
+  Note that if we want to ensure our data is properly aligned for vectorisation, we
+  should either use something like _mm_malloc / _mm_free (if we have access to an
+  Intel compiler), or use the functionality offered by boost:
+
+#+NAME: CacheAligning
+#+BEGIN_SRC C++ :includes '("<vector>" "<boost/align/aligned_allocator.hpp>" )
+
+  // Number of bytes in AVX2 register
+  const unsigned align_avx2 = 512 / 8 ; 
+  const unsigned nVectors = 100 ;
+
+  // Align the vector so that it's padded for AVX2 vector registers
+  std::vector<float, boost::alignment::aligned_allocator<float, align_avx2>>
+    aligned_vector( 100, 0.0 ) ;
+
+#+END_SRC
+  
+** DONE Cache-Blocking
+
+   Next, let's apply a fairly standard strategy to optimise the cache
+   performance of the application through temporal cache locality. 
+   Consider:
+
+#+NAME: CacheBlocking
+#+BEGIN_SRC C++ :includes '("<vector>" "<chrono>" "<iostream>") :flags "-std=c++17 -O3 -march=native" :tangle tangle/cache_blocking.cpp
+  #define block_size 256
+  const unsigned nDims = 3, nAtoms = 65536 ;
+
+  std::vector<float> pos_x( nAtoms ), pos_y( nAtoms ), pos_z( nAtoms ) ;
+  std::vector<float> acc( nAtoms, 0.0 ) ;
+
+  auto block_start = std::chrono::high_resolution_clock::now() ;
+  for( unsigned iVec=0 ; iVec<nAtoms ; iVec+=block_size ) {
+
+    float * x_off = pos_x.data() + iVec ;
+    float * y_off = pos_y.data() + iVec ;
+    float * z_off = pos_z.data() + iVec ;
+
+    float temp_acc[block_size] = { 0 } ;
+
+    for( unsigned jVec=0 ; jVec<nAtoms ; ++jVec ) {
+      // Get the jVec'th position vector
+      float xj = pos_x[jVec], yj = pos_y[jVec], zj = pos_z[jVec] ;
+      
+      for( unsigned iiVec=0 ; iiVec<block_size ; ++iiVec ) {
+        // Get the iVec'th position vector
+        float xi = x_off[iiVec], yi = y_off[iiVec], zi = z_off[iiVec] ;
+        // Vector difference
+        float dx = xi - xj, dy = yi - yj, dz = zi - zj ;
+        // Square distance between vectors
+        temp_acc[iiVec] += dx*dx + dy*dy + dz*dz ;
+      }
+
+    }
+
+    for( unsigned iiVec=0 ; iiVec<block_size ; ++iiVec ) 
+      acc[iVec + iiVec] = temp_acc[iiVec] ;
+      
+  }
+  auto block_end = std::chrono::high_resolution_clock::now() ;
+  auto block_time =
+    std::chrono::duration_cast<std::chrono::milliseconds>( block_end -block_start ).count() ;
+  std::cout << " Cache-Blocking Time : " << block_time << std::endl ;
+
+#+END_SRC
+#+RESULTS: CacheBlocking
+: Cache-Blocking Time : 6253
+
+   By blocking the outer loop, we force those position vectors in each
+   block to remain in cache while computing the pairwise interactions
+   with each particle in the inner loop.
+
+   A platform-dependent optimisation must, however, be undertaken- the
+   block size should be optimised such that the position vectors we're
+   blocking fit within the L1 data cache. Exceed this and we'll get 
+   very poor behaviour, while not filling the cache results in suboptimal
+   memory bandwidth usage.
+
+   Consider the system we're using to benchmark performance. The L1 data cache
+   is 32kb in size. Since we're using a 4-byte numerical representation, with
+   three numbers per position vector, we are able to fill the L1 data cache
+   with roughly 2500 position vectors. We plot the performance of various
+   block sizes below:
+
+#+PLOT: title:"Cache-Blocking Performance" ind:1 type:2d with:lines
+#+PLOT: set:xlabel "Block Size" set:(ylabel "Time / ms")
+#+TBLNAME:CacheBlocking
+   |------------+------|
+   | Block Size | Time |
+   |------------+------|
+   |        256 | 9179 |
+   |        512 | 9021 |
+   |       1024 | 9416 |
+   |       2048 | 9420 |
+   |       4096 | 9555 |
+   |       8192 | 9635 |
+   |------------+------|
+
+* TODO Lookup Table or Data Replication
+
+  Let's consider the simplest case of an N-body code, where the masses of particles
+  are required to compute the dynamics of a system. The simplest way to go about
+  implementing this is to have an array with an entry for each particle containing
+  its mass. However, what about if we have millions of bodies, each with the same
+  mass? There is an enormous redundancy in the amount of data stored, and is
+  consequently a waste of memory bandwidth.
+
+  An alternative scheme would be to implement a lookup table: bodies are ordered
+  so that those with equal masses are grouped contiguously. We subsequently just
+  store the number of bodies with the same mass, and can use the index of the body
+  as the argument to a lookup table which returns the associated mass. This certainly
+  resolves the issue of data redundancy, but is is higher performance? We are 
+  required to do some comparison between the body's index and the number of bodies of
+  a particular type such that we are able to construct the argument to the lookup
+  table. We then recover the situation of retrieving the mass from an array.
+
+  So, does a saving in data redundancy outweigh the additional complexity associated
+  with computing the appropriate index of the lookup table?
+
+* TODO Multithreading
+  
+  I very much like the idea of using as few external libraries as possible.
+  Libraries can end up falling into disrepair, and I have no intention of
+  rewriting large portions of the application at some point in the future to
+  use another library. Note that this is a fairly silly reason to avoid
+  using libraries- chances are this application will be far less optimal than
+  something like OpenMP or kokkos, regardless of whether they're cast onto
+  the waste heap of software. So who cares? Well, unfortunately I do...
+
+  Support for multithreading now appears to be a rock solid feature of C++,
+  so it stands to reason that its capabilities will continue to improve with
+  subsequent versions of the standard.
+
