@@ -70,13 +70,17 @@ class Slater():
         # determinants we get gibberish out
         if Slater.num_mos[0] == 0:
             self.alpha = np.zeros((1, 1), dtype=float)
+            self.inv_alpha = np.zeros((1, 1), dtype=float)
         else:
             self.alpha = np.zeros((Slater.num_mos[0], Slater.num_mos[0]), dtype=float)
+            self.inv_alpha = np.zeros((Slater.num_mos[0], Slater.num_mos[0]), dtype=float)
 
         if Slater.num_mos[1] == 0:
             self.beta = np.zeros((1, 1), dtype=float)
+            self.inv_beta = np.zeros((1, 1), dtype=float)
         else:
             self.beta = np.zeros((Slater.num_mos[1], Slater.num_mos[1]), dtype=float)
+            self.inv_beta = np.zeros((Slater.num_mos[1], Slater.num_mos[1]), dtype=float)
 
         # Since we don't have a configuration yet, just have the determinants as unity
         self.alpha_det = 1.0; self.beta_det = 1.0        
@@ -86,12 +90,17 @@ class Slater():
         """String representation of the Slater wavefunction.
         """
         np.set_printoptions(formatter={'float': '{:7.4f}'.format})
-        return "Slater Wavefunction\n" \
-            " * Alpha MO Coefficients\n   {0}\n * Beta MO Coefficients\n   {1}\n" \
-            " * Alpha Slater Matrix\n   {2}\n * Beta Slater Matrix\n   {3}\n" \
-            " * Alpha Determinant : {4:7.4f}\n * Beta Determinant  : {5:7.4f}\n * Slater Determinant: {6:7.4f}"\
-            .format(Slater.mo_coeffs[0], Slater.mo_coeffs[1], \
-                    self.alpha, self.beta, self.alpha_det, self.beta_det, self.value())
+        walker_str = ""
+        walker_str += "Slater Wavefunction\n"
+        walker_str += " * Alpha MO Coefficients\n   {0}\n".format(self.mo_coeffs[0])
+        walker_str += " * Beta MO Coefficients\n   {0}\n".format(self.mo_coeffs[1])
+        walker_str += " * Alpha Slater Matrix\n   {0}\n".format(self.alpha)
+        walker_str += " * Beta Slater Matrix\n   {0}\n".format(self.beta)
+        walker_str += " * Alpha Inverse Slater Matrix\n   {0}\n".format(self.inv_alpha)
+        walker_str += " * Beta Inverse Slater Matrix\n   {0}\n".format(self.inv_beta)
+        walker_str += " * Alpha Determinant : {0:7.4f}\n".format(self.alpha_det)
+        walker_str += " * Beta Determinant  : {0:7.4f}\n".format(self.beta_det)
+        walker_str += " * Slater Determinant: {0:7.4f}\n".format(self.value())
 
     def value(self):
         """Return the product of spin-Slater determinants.
@@ -107,16 +116,18 @@ class Slater():
         if Slater.num_mos[0] > 0:
             # Evaluate the atomic orbitals for each electron of the spin-state. This gives
             # us an array of size (num_aos x num_elecs_spin)
-            alpha_elec_aos = np.transpose(np.apply_along_axis(Slater.aos.evaluate, axis=1, arr=pos[0]))
+            alpha_elec_aos = np.apply_along_axis(Slater.aos.evaluate, axis=1, arr=pos[0]).T
             # The Slater matrix can now be formed my matrix multiplication:
-            # (num_mos_spin x num_aos) . (num_aos x num_elecs_spin) = (num_mos_spin x num_elecs_spin)
+            # (num_mos_spin,num_aos) . (num_aos,num_elecs_spin) = (num_mos_spin,num_elecs_spin)
             self.alpha = np.dot(Slater.mo_coeffs[0], alpha_elec_aos)
+            self.inv_alpha = np.linalg.inv(self.alpha)
             self.alpha_det = np.linalg.det(self.alpha)
 
         # As above, but for beta-spin electrons
         if Slater.num_mos[1] > 0:
-            beta_elec_aos  = np.transpose(np.apply_along_axis(Slater.aos.evaluate, axis=1, arr=pos[1]))
-            self.beta  = np.dot(Slater.mo_coeffs[1], beta_elec_aos)
+            beta_elec_aos  = np.apply_along_axis(Slater.aos.evaluate, axis=1, arr=pos[1]).T
+            self.beta = np.dot(Slater.mo_coeffs[1], beta_elec_aos)
+            self.inv_beta = np.linalg.inv(self.beta)
             self.beta_det = np.linalg.det(self.beta)
 
     def update(self, new_pos, iel, spin):
