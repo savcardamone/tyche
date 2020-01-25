@@ -12,7 +12,10 @@ import untangle
 from miniapp.orbital import lcao
 
 class Slater():
-    """Slater wavefunction class. Factor wavefunction into product of spin-determinants.
+    """Slater wavefunction class. 
+    Since the wavefunction is factorised into product of spin-determinants, many of the routines
+    return a tuple of values -- the zeroth element in the tuple corresponds to the alpha-spin
+    part while the first element the beta-spin part.
     """
 
     # Class variables (static across all Slater wavefunctions)
@@ -84,7 +87,6 @@ class Slater():
 
         # Since we don't have a configuration yet, just have the determinants as unity
         self.alpha_det = 1.0; self.beta_det = 1.0        
-
         
     def __str__(self):
         """String representation of the Slater wavefunction.
@@ -107,10 +109,8 @@ class Slater():
         """
         return self.alpha_det * self.beta_det
         
-    def evaluate(self, pos):
-        """Evaluate the spin-Slater matrices and determinants for all electrons in
-        the system. Note that this is brute force determinant calculating, and not
-        Sherman-Morrison, so cubic scaling in number of electrons.
+    def matrix(self, pos):
+        """Evaluate the spin-Slater matrices for all electrons that are given as an argument.
         """
         # Just skip Slater matrix evaluation if there are no electrons of this spin-state
         if Slater.num_mos[0] > 0:
@@ -120,16 +120,46 @@ class Slater():
             # The Slater matrix can now be formed my matrix multiplication:
             # (num_mos_spin,num_aos) . (num_aos,num_elecs_spin) = (num_mos_spin,num_elecs_spin)
             self.alpha = np.dot(Slater.mo_coeffs[0], alpha_elec_aos)
-            self.inv_alpha = np.linalg.inv(self.alpha)
-            self.alpha_det = np.linalg.det(self.alpha)
 
         # As above, but for beta-spin electrons
         if Slater.num_mos[1] > 0:
             beta_elec_aos  = np.apply_along_axis(Slater.aos.evaluate, axis=1, arr=pos[1]).T
             self.beta = np.dot(Slater.mo_coeffs[1], beta_elec_aos)
-            self.inv_beta = np.linalg.inv(self.beta)
-            self.beta_det = np.linalg.det(self.beta)
 
+        return (self.alpha, self.beta)
+            
+    def laplacian(self, pos):
+        """Evaluate the spin-Slater laplacians for all electrons that are given as an argument.
+        """
+        # Just skip laplacian evaluation if there are no electrons of this spin-state
+        if Slater.num_mos[0] > 0:
+            # Evaluate the second derivatives of the atomic orbitals for each electron of the
+            # spin-state. This gives us an array of size (num_aos x num_elecs)
+            alpha_elec_ao_lapls = np.apply_along_axis(Slater.aos.laplacian, axis=1, arr=pos[0]).T
+            # The laplacian of the Slater wavefunction can now be formed my matrix multiplication:
+            # (num_mos_spin,num_aos) . (num_aos,num_elecs) = (num_mos_spin,num_elecs)
+            alpha_laplacian = np.dot(Slater.mo_coeffs[0], alpha_elec_aos)
+
+        # As above, but for beta-spin electrons
+        if Slater.num_mos[1] > 0:
+            beta_elec_ao_lapls  = np.apply_along_axis(Slater.aos.laplacian, axis=1, arr=pos[1]).T
+            beta_laplacian = np.dot(Slater.mo_coeffs[1], beta_elec_aos)
+
+        return (alpha_laplacian, beta_laplacian)
+
+    def inverse_explicit(self):
+        """Explicitly invert the Slater matrices via brute force cubic-scaling method.
+        Should only really be called at object creation.
+        """
+        
+        if Slater.num_mos[0] > 0:
+            self.inv_alpha = np.linalg.inv(self.alpha)
+        
+        if Slater.num_mos[1] > 0:
+            self.inv_beta = np.linalg.inv(self.beta)
+
+        return (self.inv_alpha, self.inv_beta)
+            
     def update(self, new_pos, iel, spin):
         """Sherman-Morrison update of the appropriate spin-Slater matrix and
         corresponding determinant.

@@ -115,6 +115,6 @@ class Walker():
     def kinetic(self):
         """Compute the total electron kinetic energy contribution to the walker's local energy.
         """
-        laplacian_wfn = self.wfn.aos.laplacian(self, self.pos)
+        laplacian_wfn = self.wfn.laplacian(self, self.pos)
         return 0.0
     
