@@ -14,23 +14,24 @@ class Walker():
     """
     
     # Class variables (static across all walkers)
-    system = None
+    system = None; wavefunction = None
     
     @classmethod
-    def initialise_parameters(cls, system):
+    def initialise_parameters(cls, system, wavefunction):
         """Initialisation of class variables.
         We're going to need to system to evaluate nuclear contributions to the local energy,
         but this is constant data, so no need to replicate for each walker.
         """
         # Keep hold of the atomic orbitals that form the LCAO
         cls.system = system
+        cls.wavefunction = wavefunction
         
     def __init__(self, wfn):
         """Class constructor.
         """
         # Verify that we've called the class variable initialisation routine before we start
         # trying to do object creation
-        if Walker.system is None:
+        if None in (Walker.system, Walker.wavefunction):
             sys.exit("Walker class variables must be initialised before object construction.")
         
         def place_electron():
@@ -45,8 +46,6 @@ class Walker():
                 Walker.system.atoms[atom_idx].pos, Walker.system.atoms[atom_idx].Rvdw, size=3
             )
         
-        # Give the walker a copy of the wavefunction
-        self.wfn = wfn
         # Initialise the array to store the alpha and beta electrons
         self.pos = (
             np.zeros((self.wfn.num_mos[0],3), dtype=float),
@@ -59,17 +58,19 @@ class Walker():
         # Initialise beta-spin electrons
         for ielec in range(self.wfn.num_mos[1]):
             self.pos[1][ielec,:] = place_electron()
-            
-        # Evaluate the wavefunction for the walker's configuration
-        self.wfn.evaluate(self.pos)
+
+        self.matrix = Walker.wavefunction.matrix(self.pos)
+        self.invert_matrices_explicit()
+        self.local_energy()
+        
             
     def __str__(self):
         """String representation of the Walker.
         """
         np.set_printoptions(formatter={'float': '{:7.4f}'.format})
-        return_str = ""
-        return_str += "Walker with {0} alpha- and {1} beta-spin electrons\n".format(self.pos[0].shape[0], self.pos[1].shape[0])
-        return_str += "Potential Energy: {0:7.4f} Ha   Kinetic Energy: {1:7.4f} Ha\n".format(self.potential(), self.kinetic())
+        return_str = "Walker\n"
+        return_str += "{0} alpha- and {1} beta-spin electrons\n".format(self.pos[0].shape[0], self.pos[1].shape[0])
+        return_str += "Pot: {0:7.4f}Ha   Kin: {1:7.4f}Ha\n".format(self.potential(), self.kinetic())
         return_str += "Alpha Electron Positions\n"
         for ialpha in range(self.pos[0].shape[0]):
             return_str += "{0}\n".format(self.pos[0][ialpha,:]) 
