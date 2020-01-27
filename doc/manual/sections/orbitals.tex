@@ -1,0 +1,149 @@
+\section{Orbitals}
+\subsection{Normalisation of Primitive Contractions}
+
+Consider a generic primitive function,
+%
+\begin{equation}
+	\phi_\mu(\mathbf{r}) = N x^\ell y^m z^n \exp\Big[ -\alpha \mathbf{r}\cdot \mathbf{r} \Big]\,,
+\end{equation}
+%
+where $N$ is an as yet undetermined normalisation constant. The normalisation condition is given by
+%
+\begin{align}
+	\int^\infty_{-\infty} d\mathbf{r} \phi_\mu^*(\mathbf{r})\phi_\mu(\mathbf{r}) &= 1 \\
+    N^2 \int_{-\infty}^{\infty} d\mathbf{r} x^{2\ell} y^{2m} z^{2n} \exp\Big[ -2\alpha \mathbf{r}\cdot\mathbf{r} \Big] &= 1 \\
+    N^2 \int_{-\infty}^\infty dx x^{2\ell} \int_{-\infty}^\infty dy y^{2m} \int_{-\infty}^\infty dz z^{2n} \exp\Big[ -2\alpha \mathbf{r}\cdot\mathbf{r} \Big] &= 1 \,,
+\end{align}
+%
+where we have split $d\mathbf{r} = dxdydz$. Further, the exponential can be split into a product of 
+exponentials in the three Cartesian degrees of freedom
+%
+\begin{equation}\label{eq::Normalisation}
+	N^2 \int_{-\infty}^\infty dx x^{2\ell} \exp\Big[ -2\alpha x^2 \Big] \int_{-\infty}^\infty dy y^{2m} \exp\Big[ -2\alpha y^2 \Big] \int_{-\infty}^\infty dz z^{2n} \exp\Big[ -2\alpha z^2 \Big]  = 1\,.
+\end{equation}
+%
+The individual integrals can be evaluated in closed form. The integral with respect to $dx$, for 
+instance, can we written
+%
+\begin{equation}
+	\int_{-\infty}^\infty dx x^{2\ell} \exp\Big[ -2\alpha x^2 \Big] = \sqrt{\frac{\pi}{2\alpha}} \frac{(2\ell - 1)!!}{(4\alpha)^\ell}\,.
+\end{equation}
+%
+The integrals with respect to $dy$ and $dz$ have similar solutions. Then, we can write 
+\eqref{eq::Normalisation} as
+%
+\begin{equation}
+	N^2 \Bigg(\frac{\pi}{2\alpha}\Bigg)^{3/2} \frac{(2\ell - 1)!!}{(4\alpha)^\ell} \frac{(2m - 1)!!}{(4\alpha)^m}\frac{(2n - 1)!!}{(4\alpha)^n} = 1\,.
+\end{equation}
+%
+Rearranging, the normalisation constant is given by
+%
+\begin{align}
+	N^2 &= \Bigg( \frac{2\alpha}{\pi} \Bigg)^{3/2} \frac{(4\alpha)^{\ell + m + n}}{(2\ell - 1)!!(2m - 1)!!(2n - 1)!!} \nonumber \,, \\
+    N &= \Bigg( \frac{2\alpha}{\pi} \Bigg)^{3/4} \sqrt{\frac{(4\alpha)^{\ell + m + n}}{(2\ell - 1)!!(2m - 1)!!(2n - 1)!!}}\,.
+\end{align}
+%
+Let us take the trivial example of $\ell = m = n = 0$ (note that $(-1)!! = 1$), where $N$ 
+reduces to 
+%
+\begin{equation}
+	N = \Bigg( \frac{2\alpha}{\pi} \Bigg)^{3/4} \sqrt{\frac{(4\alpha)^0}{(-1)!!(-1)!!(-1)!!}} = \Bigg( \frac{2\alpha}{\pi} \Bigg)^{3/4}\,.
+\end{equation}
+
+
+\subsection{Laplacian of Contracted Gaussian Atomic Orbitals}
+%
+Consider a Contracted Gaussian Atomic Orbital (CGO), $\Psi$, which is centred on 
+$\mathbf{R} = \big[ \begin{array}{ccc} X & Y & Z \end{array}\big]^\top$, and is a function of 
+the electronic position vector, $\mathbf{r} = \big[ \begin{array}{ccc} x & y & z \end{array}\big]^\top$. 
+$\Psi(\mathbf{r}, \mathbf{R})$ takes the form of a linear combination of $N$ primitive Gaussian functions
+%
+\begin{equation}
+	\Psi(\mathbf{r,R}) = (x - X)^\ell (y - Y)^m (z - Z)^n \sum_{i=1}^N c_i \exp \Big[ -\zeta_i |\mathbf{r-R}|^2 \Big] \,.
+\end{equation}
+%
+By changing our coordinate system so that $\mathbf{R}$ is the origin, we can omit the difference 
+coordinates and write
+%
+\begin{equation}
+	\Psi(\mathbf{r}) = x^\ell y^m z^n \sum_{i=1}^N c_i \exp \Big[ -\zeta_i r^2 \Big] \,,
+\end{equation}
+%
+where $r^2 = \mathbf{r}\cdot \mathbf{r}$. Since the Laplacian is the divergence of the gradient, 
+$\nabla \cdot \nabla$, we can evaluate $\nabla^2 \Psi(\mathbf{r})$ by consecutive operation of $\nabla$. 
+For the sake of simplicity, we consider the action of $\nabla_x^2$ on $\Psi(\mathbf{r})$ and save the 
+generalisation for later. A key identity used throughout is
+%
+\begin{displaymath}
+	\frac{d}{dx} \exp\Big[ -\zeta_i r^2 \Big] = -2x \exp\Big[ -\zeta_i r^2 \Big] \,,
+\end{displaymath}
+%
+which can be derived trivially. First, by the product theorem
+%
+\begin{equation}
+	\nabla_x \Psi(\mathbf{r}) = \ell x^{\ell-1} y^m z^n \sum_{i=1}^N c_i \exp \Big[ -\zeta_i r^2 \Big] - 2x^{\ell+1}y^m z^n \sum_{i=1}^N \zeta_i c_i \exp \Big[ -\zeta_i r^2 \Big] \,.
+\end{equation}
+%
+Dealing with the action of $\nabla_x$ on the first term,
+%
+\begin{align}\label{eq::FirstTerm}
+	\nabla_x \Big(  \ell x^{\ell-1} y^m z^n \sum_{i=1}^N c_i \exp \Big[ -\zeta_i r^2 \Big] \Big) &= \ell(\ell-1)x^{\ell-2} y^m z^n \sum_{i=1}^N c_i \exp \Big[ -\zeta_i r^2 \Big] \nonumber \\
+    &- 2 \ell x^\ell y^m z^n \sum_{i=1}^N \zeta_i c_i \exp \Big[ -\zeta_i r^2 \Big] \,.
+\end{align}
+%
+Similarly, the action of $\nabla_x$ on the second term
+%
+\begin{align}\label{eq::SecondTerm}
+	\nabla_x \Big( 2x^{\ell+1} y^m z^n \sum_{i=1}^N \zeta_i c_i \exp \Big[ -\zeta_i r^2 \Big] \Big) &= 2(\ell+1)x^\ell y^m z^n \sum_{i=1}^N \zeta_i c_i \exp \Big[ -\zeta_i r^2 \Big] \nonumber \\
+    &- 4x^{\ell+2} y^m z^n \sum_{i=1}^N \zeta_i^2 c_i \exp \Big[ -\zeta_i r^2 \Big] \,.
+\end{align}
+%
+Combining \eqref{eq::FirstTerm} and \eqref{eq::SecondTerm}, we are left with $\nabla^2_x \Psi(\mathbf{r})$
+%
+\begin{align}
+	\nabla^2_x \Psi(\mathbf{r}) &= \ell(\ell-1)x^{\ell-2} y^m z^n \sum_{i=1}^N c_i \exp \Big[ -\zeta_i r^2 \Big] +  4x^{\ell+2} y^m z^n \sum_{i=1}^N \zeta_i^2 c_i \exp \Big[ -\zeta_i r^2 \Big] \\ 
+    &- 2(2\ell+1)x^\ell y^m z^n \sum_{i=1}^N \zeta_i c_i \exp \Big[ -\zeta_i r^2 \Big] \,.
+\end{align}
+%
+By replacing $ f_i(r) = c_i \exp\Big[ \zeta_i r^2 \Big]$ for the sake of clarity,
+%
+\begin{equation}
+    \nabla^2_x \Psi(\mathbf{r})= \ell(\ell-1)x^{\ell-2} y^m z^n \sum_{i=1}^n f_i(r) + 4x^{\ell+2} y^m z^n \sum_{i=1}^N \zeta_i^2 f_i(r) - 2(2\ell+1)x^\ell y^m z^n \sum_{i=1}^N \zeta_i f_i(r) \,.
+\end{equation}
+%
+Further, we introduce the notation $F_0(r) = \sum_{i=1}^N f_i(r)$, $F_1(r) = \sum_{i=1}^N \zeta_i f_i(r)$ 
+and $F_2(r) = \sum_{i=1}^N \zeta_i^2 f_i(r)$, so that
+%
+\begin{equation}
+    \nabla^2_x \Psi(\mathbf{r})= \ell(\ell-1)x^{\ell-2} y^m z^n F_0(r) + 4x^{\ell+2} y^m z^n F_2(r) - 2(2\ell+1)x^\ell y^m z^n F_1(r) \,.
+\end{equation}
+%
+It should be obvious to the reader that expressions for $\nabla^2_y \Psi(\mathbf{r})$ and 
+$\nabla^2_z \Psi(\mathbf{r})$ can be given in entirely equivalent manners, so that
+%
+\begin{align}
+	&\nabla^2_y \Psi(\mathbf{r})= m(m-1)x^\ell y^{m-2} z^n F_0(r) + 4x^\ell y^{m+2} z^n F_2(r) - 2(2m+1) x^\ell y^m z^n F_1(r) \\
+    &\nabla^2_z \Psi(\mathbf{r})= n(n-1)x^\ell y^{m} z^{n-2} F_0(r) + 4x^\ell y^{m} z^{n+2} F_2(r) - 2(2n+1) x^\ell y^m z^n F_1(r) \,.
+\end{align}
+%
+By summing $\Big( \nabla^2_x + \nabla^2_y + \nabla^2_z \Big)\Psi(\mathbf{r})$, we then have 
+the Laplacian of the CGO
+%
+\begin{align}
+	\nabla^2 \Psi(\mathbf{r}) &= \Big[ \ell(\ell-1)x^{\ell-2} y^m z^n + m(m-1)x^\ell y^{m-2} z^n + n(n-1)x^\ell y^{m} z^{n-2} \Big] F_0(r) \nonumber \\
+    & + 4\Big[x^{\ell+2} y^m z^n + x^\ell y^{m+2} z^n + x^\ell y^{m} z^{n+2} \Big] F_2(r) \nonumber \\
+    &- \Big[ 4(\ell + m + n) + 6 \Big] x^\ell y^m z^n F_1(r) \,.
+\end{align}
+%
+Consider the case where $\ell = m = n = 0$. Only the functions of $F_2(r)$ and $F_1(r)$ 
+are non-zero. The coefficient of $F_1(r)$ is $6$ while that of $F_2(r)$ is $4(x^2 + y^2 + z^2) = 4r^2$. 
+Then
+%
+\begin{align}
+	\nabla^2 \Psi(\mathbf{r}) &= 4r^2 F_2(r) - 6 F_1(r) \nonumber \\
+    &= 4r^2 \sum_{i=1}^N \zeta_i^2 c_i \exp \Big[ -\zeta_i r^2 \Big] - 6 \sum_{i=1}^N \zeta_i c_i \exp \Big[ -\zeta_i r^2 \Big] \nonumber \\
+    &= 2 \sum_{i=1}^N c_i \Big( 2\zeta_i^2 r^2 - 3\zeta_i \Big) \exp\Big[ -\zeta_i r^2 \Big] \,.
+\end{align}
+%
+Any atomic orbitals of higher angular momentum necessitate the consideration of a number of 
+additional terms.

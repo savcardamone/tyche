@@ -1,0 +1,81 @@
+%%% Generic LaTeX document.
+%%% Basically just a wrapper around the PRL template.
+%%%
+%%% AUTHOR: Salvatore Cardamone
+%%%         University of Cambridge, 2017
+
+\documentclass[preprint]{revtex4-1}
+
+%%%
+%%% Package inclusions and package-specific settings 
+%%%
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{braket}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\graphicspath{images}
+\usepackage{rotating}
+\usepackage{enumitem}
+\usepackage[toc,page]{appendix}
+
+%%%
+%%% Generic LaTeX settings and commands
+%%%
+% Get rid of the cursed indentation
+\setlength{\parindent}{0cm}
+\raggedbottom
+\setlist[enumerate]{noitemsep, nolistsep}
+\setlist[itemize]{noitemsep, nolistsep}
+
+%%%
+%%% Macros and shortcuts
+%%%
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\im}{{i\mkern1mu}}
+\newcommand{\pp}{\texttt{++} }
+% Get rid of stupid revtex numbering
+\def\thesection{\arabic{section}}
+\def\thesubsection{\arabic{section}.\arabic{subsection}}
+\def\thesubsubsection{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}}
+\def\theparagraph{\arabic{section}.\arabic{subsection}.\arabic{subsubsection}.\arabic{paragraph}}
+
+%%%
+%%% Document start
+%%%
+\begin{document}
+
+%%%
+%%% Document preamble
+%%%
+\title{tyche\pp Manual}
+\author{S. Cardamone}
+\date{\today}
+
+\begin{titlepage}
+\maketitle
+\tableofcontents
+\end{titlepage}
+
+%%%
+%%% Actual document files
+%%%
+\input{sections/introduction}
+\input{sections/orbitals}
+
+%%%
+%%% Include the bibliography
+%%%
+\bibliography{manual} 
+
+%%%
+%%% Appendices
+%%%
+\newpage
+\begin{appendices}
+\input{appendices/appendix}
+\end{appendices}
+
+\end{document}
+
