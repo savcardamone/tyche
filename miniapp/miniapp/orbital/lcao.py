@@ -31,15 +31,37 @@ class LCAO():
             # Loop over atomic basis sets specified in the file until we find the appropriate one
             for atomic_basis_set in atomic_basis_sets:
                 if atomic_basis_set['atom'] == atom.atom_type:
-                    # Loop over AOs in this contraction and append each to the LCAO
-                    for contraction in atomic_basis_set.Contraction:
-                        atomic_aos.append(ao.AtomicOrbital(
-                            centre=atom.pos,
-                            coeffs=np.fromstring(contraction.Coeff.cdata, dtype=float, sep=','),
-                            zetas=np.fromstring(contraction.Zeta.cdata, dtype=float, sep=','),
-                            ang_mom=np.fromstring(contraction.AngMom.cdata, dtype=int, sep=',')
-                        ))
                     
+                    # Loop over AOs in this contraction and append each to the LCAO
+                    # We explicitly construct the multiple atomic orbitals arising from l > 0
+                    for contraction in atomic_basis_set.Contraction:
+
+                        coeffs = np.fromstring(contraction.Coeff.cdata, dtype=float, sep=',')
+                        zetas = np.fromstring(contraction.Zeta.cdata, dtype=float, sep=',')
+                        
+                        if contraction['ang_mom'] == "s":
+                            ang_moms = [np.array([0, 0, 0], dtype=int)]
+                        elif contraction['ang_mom'] == "p":
+                            ang_moms = [
+                                np.array([1, 0, 0], dtype=int), np.array([0, 1, 0], dtype=int),
+                                np.array([0, 0, 1], dtype=int)
+                            ]
+                        elif contraction['ang_mom'] == "d":
+                            ang_moms = [
+                                np.array([2, 0, 0], dtype=int), np.array([0, 2, 0], dtype=int),
+                                np.array([0, 0, 2], dtype=int), np.array([1, 1, 0], dtype=int),
+                                np.array([1, 0, 1], dtype=int), np.array([0, 1, 1], dtype=int)
+                            ]
+                        else:
+                            sys.exit("Unrecognised contraction ang mom: {0}".format(ang_mom_type))
+
+                        # Loop over all (-l <= m <= l) and construct the corresponding
+                        # atomic orbital 
+                        for ang_mom in ang_moms:
+                            atomic_aos.append(
+                                ao.AtomicOrbital(atom.pos, coeffs, zetas, ang_mom)
+                            )
+
             if not atomic_aos:
                 sys.exit("Could not find atomic basis for atom type {0}".format(atom.atom_type))
             else:

@@ -49,8 +49,8 @@ class AtomicOrbital():
         prefactor_y = dfac(2*self.ang_mom[1] - 1)
         prefactor_z = dfac(2*self.ang_mom[2] - 1)
         prefactor_part = prefactor_x * prefactor_y * prefactor_z / np.power(2, tot_ang_mom)
-        prefactor = 1 / np.sqrt(np.power(np.pi, 1.5) * prefactor_part)
-        
+        prefactor = np.power(np.pi, 1.5) * prefactor_part
+
         summation = 0.0
         for iprim in range(len(self.coeffs)):
             for jprim in range(len(self.coeffs)):
@@ -58,7 +58,7 @@ class AtomicOrbital():
                 denom = np.power(self.zetas[iprim] + self.zetas[jprim], tot_ang_mom + 1.5)
                 summation += coeff_prod / denom
 
-        N = prefactor / np.sqrt(summation)
+        N = np.sqrt(prefactor * summation)
         for iprim in range(len(self.coeffs)):
             self.coeffs[iprim] /= N
 
