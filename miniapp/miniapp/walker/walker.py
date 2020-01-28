@@ -26,7 +26,7 @@ class Walker():
         cls.system = system
         cls.wavefunction = wavefunction
         
-    def __init__(self, wfn):
+    def __init__(self):
         """Class constructor.
         """
         # Verify that we've called the class variable initialisation routine before we start
@@ -48,21 +48,21 @@ class Walker():
         
         # Initialise the array to store the alpha and beta electrons
         self.pos = (
-            np.zeros((self.wfn.num_mos[0],3), dtype=float),
-            np.zeros((self.wfn.num_mos[1],3), dtype=float)
+            np.zeros((Walker.wavefunction.num_mos[0],3), dtype=float),
+            np.zeros((Walker.wavefunction.num_mos[1],3), dtype=float)
         )
         
         # Initialise alpha-spin electrons
-        for ielec in range(self.wfn.num_mos[0]):
+        for ielec in range(Walker.wavefunction.num_mos[0]):
             self.pos[0][ielec,:] = place_electron()
         # Initialise beta-spin electrons
-        for ielec in range(self.wfn.num_mos[1]):
+        for ielec in range(Walker.wavefunction.num_mos[1]):
             self.pos[1][ielec,:] = place_electron()
 
         self.matrix = Walker.wavefunction.matrix(self.pos)
-        self.invert_matrices_explicit()
-        self.local_energy()
-        
+        self.inverse = self.invert_wavefunction()
+        self.dets = self.determinant_wavefunction()
+        #self.local_energy()
             
     def __str__(self):
         """String representation of the Walker.
@@ -116,6 +116,16 @@ class Walker():
     def kinetic(self):
         """Compute the total electron kinetic energy contribution to the walker's local energy.
         """
-        laplacian_wfn = self.wfn.laplacian(self, self.pos)
-        return 0.0
+        laplacian_wfn = Walker.wavefunction.laplacian(self.pos)
+        alpha_kin = np.einsum('ij,ij->i', laplacian_wfn[0], self.inverse[0].T)
+        beta_kin  = np.einsum('ij,ij->i', laplacian_wfn[1], self.inverse[1].T)
+        return np.sum(alpha_kin + beta_kin)
     
+    def invert_wavefunction(self):
+        return (np.linalg.inv(self.matrix[0]), np.linalg.inv(self.matrix[1]))
+
+    def determinant_wavefunction(self):
+        return (np.linalg.det(self.matrix[0]), np.linalg.det(self.matrix[1]))
+
+    def wavefunction_value(self):
+        return self.dets[0] * self.dets[1]

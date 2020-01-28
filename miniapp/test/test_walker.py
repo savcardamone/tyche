@@ -26,9 +26,7 @@ class TestWalker(ut.TestCase):
             print("Working on input file: {0}".format(test_file))
             
             test_system = system.System("{0}".format(test_file))
-            slater.Slater.initialise_parameters(test_system, "{0}".format(test_file)) 
-            test_slater = slater.Slater()
+            test_slater = slater.Slater(test_system, "{0}".format(test_file))
 
-            walker.Walker.initialise_parameters(test_system)
-            test_walker = walker.Walker(test_slater)
-            print(test_walker)
+            walker.Walker.initialise_parameters(test_system, test_slater)
+            test_walker = walker.Walker()

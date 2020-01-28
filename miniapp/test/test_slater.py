@@ -26,7 +26,6 @@ class TestSlater(ut.TestCase):
             
             test_system = system.System("{0}".format(test_file))
             test_slater = slater.Slater(test_system, "{0}".format(test_file))
-            print(test_slater)
 
             test_walker = (
                 np.random.uniform(-10.0, 10.0, size=(test_slater.num_mos[0],3)),
@@ -35,12 +34,3 @@ class TestSlater(ut.TestCase):
 
             (alpha_mat,beta_mat) = test_slater.matrix(test_walker)
             (alpha_lap,beta_lap) = test_slater.laplacian(test_walker)
-
-            np.set_printoptions(formatter={'float': '{:11.4f}'.format})
-            print("Alpha Electrons:\n{0}".format(test_walker[0]))
-            print("Beta  Electrons:\n{0}".format(test_walker[1]))
-            print("Alpha Slater Matrix:\n{0}".format(alpha_mat))
-            print("Beta  Slater Matrix:\n{0}".format(beta_mat))
-            print("Alpha Laplacian Matrix:\n{0}".format(alpha_lap))
-            print("Beta  Laplacian Matrix:\n{0}".format(beta_lap))
-            
