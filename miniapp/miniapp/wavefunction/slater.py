@@ -36,8 +36,8 @@ class Slater():
         # make sense since the MOs are single-particle orbitals
         self.num_mos = (int(molecular_orbitals['num_alpha']), int(molecular_orbitals['num_beta']))
         self.mo_coeffs = (
-            np.zeros((cls.num_mos[0], self.aos.num_aos), dtype=float),
-            np.zeros((cls.num_mos[1], self.aos.num_aos), dtype=float)
+            np.zeros((self.num_mos[0], self.aos.num_aos), dtype=float),
+            np.zeros((self.num_mos[1], self.aos.num_aos), dtype=float)
         )
 
         imo_a = 0; imo_b = 0

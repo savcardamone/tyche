@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!-- Molecular Beryllium STO-6G Input File -->
+<Input>
+
+  <!-- Atomic System listing -->
+  <System num_atoms="2">
+    <Atom type="Be" pos="0.0, 0.0, 0.0"/>
+    <Atom type="Be" pos="0.0, 0.0, 1.0"/>
+  </System>
+
+  <!-- Wavefunction listing -->
+  <Wavefunction>
+
+    <!-- Atomic Basis Set -->
+    <Basis atom="Be" num_funcs="3">
+      <Contraction ang_mom="s">
+	<Zeta> 312.87,      57.3645,    16.0485,   5.5131,   2.1409,   0.881739 </Zeta>
+	<Coeff>  0.0091636,  0.0493615,  0.168538, 0.370563, 0.416492, 0.130334 </Coeff>
+      </Contraction>
+      <Contraction ang_mom="s">
+	<Zeta> 13.6332, 2.69838, 0.838653, 0.32266, 0.140131, 0.0642325 </Zeta>
+	<Coeff> -0.0132528, -0.0469917, -0.0337854, 0.250242, 0.595117, 0.240706 </Coeff>
+      </Contraction>
+      <Contraction ang_mom="p">
+	<Zeta> 13.6332, 2.69838, 0.838653, 0.32266, 0.140131, 0.0642325 </Zeta>
+	<Coeff> 0.0037597, 0.0376794, 0.173897, 0.418036, 0.42586, 0.101708 </Coeff>
+      </Contraction>
+    </Basis>
+    
+    <!-- Molecular Orbitals -->
+    <MolecularOrbitals num_alpha="4" num_beta="4">
+      <Coefficients spin="Both"> 0.198526086772, 0.003651394419, 0.000000000000, 0.000000000000, -0.000532367269, -0.198526086772, -0.003651394419, 0.000000000000, 0.000000000000, -0.000532367269 </Coefficients>
+      <Coefficients spin="Both"> 0.19860963112, 0.00324021307, 0.000000000000, 0.000000000000, 0.0002859955601, 0.19860963112, 0.00324021307, 0.000000000000, 0.000000000000, -0.0002859955601 </Coefficients>
+      <Coefficients spin="Both"> -0.05413841237, 0.19709551609, 0.00000000000, 0.00000000000, -0.01846014968, -0.05413841237, 0.19709551609, 0.00000000000, 0.00000000000, 0.01846014968 </Coefficients>
+      <Coefficients spin="Both"> -0.0570071169694, 0.213130527383, 0.000000000000, 0.000000000000, 0.0226091979919, 0.0570071169694, -0.213130527383, 0.000000000000, 0.000000000000, 0.0226091979919 </Coefficients>
+    </MolecularOrbitals>
+
+  </Wavefunction>
+
+</Input>

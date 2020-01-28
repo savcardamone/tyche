@@ -31,7 +31,7 @@ class AtomicOrbital():
     def __str__(self):
         """Object string representation.
         """
-        np.set_printoptions(formatter={'float': '{:7.4f}'.format})
+        np.set_printoptions(formatter={'float': '{:9.4f}'.format})
         ao_string = ""
         ao_string += "Atomic Orbital with {0} primitives.\n".format(len(self.coeffs))
         ao_string += "   Centre      : {0}\n".format(self.centre) 
@@ -66,7 +66,10 @@ class AtomicOrbital():
         """Return vector and square distance between atomic orbital centre and the position
         at which we're evaluating it.
         """
-        dr = pos - self.centre; dr_sq = np.linalg.norm(dr)
+        dr = pos - self.centre
+        for iaxis in range(3):
+            if dr[iaxis] == 0: dr[iaxis] += np.finfo(float).eps
+        dr_sq = np.linalg.norm(dr)
         return dr, dr_sq
 
     def evaluate(self, pos):
@@ -99,7 +102,7 @@ class AtomicOrbital():
         ao_val = 0.0; ddr_ao_val = 0.0; ddr2_ao_val = 0.0
         # Reduction over primitive values and derivatives at given position
         for iprim in range(len(self.coeffs)):
-            primitive = self.coeffs[iprim] * np.exp(-self.zetas[iprim] * dr_sq)
+            primitive_val = self.coeffs[iprim] * np.exp(-self.zetas[iprim] * dr_sq)
             ao_val += primitive_val
             ddr_ao_val += self.zetas[iprim] * primitive_val
             ddr2_ao_val += self.zetas[iprim] * self.zetas[iprim] * primitive_val
