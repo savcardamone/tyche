@@ -1,0 +1,28 @@
+\section{Quantum Monte Carlo}
+Consider the Schr\"{o}dinger equation for a molecular system whose $3n$ electronic
+and $3N$ nuclear degrees of freedom will be denoted collectively by the position
+vectors $\vec{r}$ and $\vec{R}$, respectively,
+%
+\begin{equation}
+  \elecham\elecwfn = E\elecwfn \,,
+\end{equation}
+%
+where $\elecwfn$ is the (unknown) electronic wavefunction and $\elecham$ is the
+electronic Hamiltonian operator, whose functional form can be written
+%
+\begin{equation}\label{eq::ElectronicHamiltonian}
+  \elecham =
+  -\frac{\hbar^2}{2m}\nabla^2_\vec{r}
+  - \sum_{I=0}^N\sum_{i=0}^n \frac{Z_I}{|\vec{R}_I - \vec{r}_i|}
+  + \sum_{i<j}^n \frac{1}{|\vec{r}_i - \vec{r}_j|}
+  + \sum_{I<J}^N \frac{Z_IZ_J}{|\vec{R}_I - \vec{R}_J|} \,,
+\end{equation}
+%
+We draw the reader's attention to the parametric dependence on the nuclear
+degrees of freedom, which results from application of the Born-Oppenheimer
+approximation (the electrons adjust instantaneously to any nuclear motion, and
+consequently the nuclei can be thought of as static). The application of the
+Born-Oppenheimer approximation also permits our omission of the nuclear kinetic
+energy from \eqref{eq::ElectronicHamiltonian}.
+
+\section{Variational Monte Carlo}
