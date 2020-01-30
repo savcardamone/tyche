@@ -32,13 +32,19 @@
 %%%
 %%% Macros and shortcuts
 %%%
-\renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\im}{{i\mkern1mu}}
 \newcommand{\pp}{\texttt{++} }
 \newcommand{\molham}{\hat{\mathcal{H}}(\vec{r},\vec{R})}
 \newcommand{\elecham}{\hat{\mathcal{H}_e}(\vec{r};\vec{R})}
 \newcommand{\molwfn}{\Psi(\vec{r},\vec{R})}
 \newcommand{\elecwfn}{\Psi_e(\vec{r};\vec{R})}
+\newcommand{\tdelecwfn}[1]{\Phi_e(\vec{r},#1;\vec{R})}
+\newcommand{\telec}{\hat{T}_e(\vec{r})}
+\newcommand{\vne}{\hat{V}_{ne}(\vec{r};\vec{R})}
+\renewcommand{\vee}{\hat{V}_{ee}(\vec{r})}
+\newcommand{\vnn}{\hat{V}_{nn}(\vec{R})}
+\newcommand{\ddt}[1]{\frac{\partial}{\partial #1}}
 
 % Get rid of stupid revtex numbering
 \def\thesection{\arabic{section}}

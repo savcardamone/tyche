@@ -3,21 +3,25 @@ Consider the Schr\"{o}dinger equation for a molecular system whose $3n$ electron
 and $3N$ nuclear degrees of freedom will be denoted collectively by the position
 vectors $\vec{r}$ and $\vec{R}$, respectively,
 %
-\begin{equation}
+\begin{equation}\label{eq::ElectronicSchrodinger}
   \elecham\elecwfn = E\elecwfn \,,
 \end{equation}
 %
 where $\elecwfn$ is the (unknown) electronic wavefunction and $\elecham$ is the
 electronic Hamiltonian operator, whose functional form can be written
 %
-\begin{equation}\label{eq::ElectronicHamiltonian}
-  \elecham =
-  -\frac{\hbar^2}{2m}\nabla^2_\vec{r}
+\begin{align}\label{eq::ElectronicHamiltonian}
+  \elecham &=
+  - \frac{\hbar^2}{2m}\nabla^2_{\vec{r}}
   - \sum_{I=0}^N\sum_{i=0}^n \frac{Z_I}{|\vec{R}_I - \vec{r}_i|}
   + \sum_{i<j}^n \frac{1}{|\vec{r}_i - \vec{r}_j|}
-  + \sum_{I<J}^N \frac{Z_IZ_J}{|\vec{R}_I - \vec{R}_J|} \,,
-\end{equation}
+  + \sum_{I<J}^N \frac{Z_IZ_J}{|\vec{R}_I - \vec{R}_J|} \nonumber \\
+  &= \telec + \vne + \vee + \vnn \,,
+\end{align}
 %
+where $\telec, \vne, \vee, \vnn$ correspond to the electronic kinetic, electron-
+nuclear attractive potential, electron-electron repulsive potential and nuclear-
+nuclear repulsive potential, respectively.
 We draw the reader's attention to the parametric dependence on the nuclear
 degrees of freedom, which results from application of the Born-Oppenheimer
 approximation (the electrons adjust instantaneously to any nuclear motion, and
@@ -26,3 +30,40 @@ Born-Oppenheimer approximation also permits our omission of the nuclear kinetic
 energy from \eqref{eq::ElectronicHamiltonian}.
 
 \section{Variational Monte Carlo}
+
+\section{Diffusion Monte Carlo}
+The time-dependent Schr\"{o}dinger equation (TDSE) for a molecular system is written
+%
+\begin{equation}\label{eq::TDSE}
+  \im\hbar\ddt{t}\tdelecwfn{t} = \elecham\tdelecwfn{t} \,,
+\end{equation}
+%
+where $\tdelecwfn{t}$ is the time-dependent electronic wavefunction. General solutions
+to the TDSE can be written as the product of a complex exponential and the starting
+condition $\tdelecwfn{t_0}$
+%
+\begin{equation}
+  \tdelecwfn{t} = \tdelecwfn{t_0}\exp[-\im E t / \hbar] \,,
+\end{equation}
+%
+where $E$ is the energy of $\tdelecwfn{t_0}$. Given Euler's identity, it is clear that
+this solution is oscillatory in time. Beginning with the TDSE may seem
+an odd starting point given we have no intentions of simulating the dynamics of
+the molecular system characterised by $\tdelecwfn{t}$, but we'll find that it allows
+us to evolve $\tdelecwfn{t}$ to the ground state of $\elecham$ through the
+dynamics codified in \eqref{eq::TDSE}.
+
+Our first step is to perform a Wick rotation, making the substitution $\tau = \im t$
+(to ``imaginary time'') in \eqref{eq::TDSE}, yielding
+%
+\begin{equation}\label{eq::WickTDSE}
+  -\hbar\ddt{\tau}\tdelecwfn{\tau} = \elecham\tdelecwfn{\tau} \,.
+\end{equation}
+%
+This seemingly innocuous operation results in solutions to \eqref{eq::WickTDSE} having
+decaying exponentials in imaginary time, rather than complex exponentials in ``real''
+time. This gives rise to a particaularly useful property: in the infinite imaginary
+time limit (i.e. as $\tau \rightarrow \infty$), contributions to $\tdelecwfn{\tau}$
+from all but the lowest energy eigenfunctions of $\elecham$ tend to zero. So evolving
+\eqref{eq::WickTDSE} in imaginary time rather magically leaves us with the ground state
+solution of $\elecham$!
