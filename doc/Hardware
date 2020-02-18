@@ -1,0 +1,59 @@
+-*- mode: org -*-
+#+TITLE: tyche++: Hardware Notes
+#+AUTHOR: Salvatore Cardamone
+#+EMAIL: sav.cardamone@gmail.com
+
+* Intel SIMD
+
+There are a number of SIMD instruction sets which Intel has developed since the 
+Pentium III in 1999 (note that we're ignoring the MMX instruction set, introduced
+in the P5-based Pentium processors of 1997). Each successive development is 
+backwards-compatible, and  we'll enumerate the main features here:
+
+** Streaming SIMD Extensions (SSE)
+
+Comprises 70 instructions, most operating on single precision floating point 
+data. Eight 128-bit registers (xmm0 through xmm7), the processing unit 
+consequently supporting four-lane 32-bit SIMD.
+
+** Streaming SIMD Extensions 2 (SSE2)
+
+Supports double-precision floating point for all SSE operations, and enables SIMD
+maths on any data types (from 8-bit integer ro 64-bit floating point). AMD's 
+implementation of SSE2 doubled the number of registers from SSE (xmm0 through 
+xmm15), which Intel subsequently adopted in 2004 for the x86-64 architecture.
+
+** Streaming SIMD Extensions 3 (SSE3)
+
+Incremental upgrate to SSE2. Addition of some DSP-oriented instructions, and
+allows addition or multiplication of numbers within the same vector register
+("horizontal" SIMD to use Intel's parlance).
+
+** Supplemental Streaming SIMD Extensions 3 (SSSE3)
+
+Upgrade to SSE3. Added ability to permute bytes in a word, multiplication of
+16-bit fixed point numbers and accumulate instructions.
+
+** Streaming SIMD Extensions 4 (SSE4)
+
+Addition of more instructions, in particular a dot product for AoS data.
+
+** Advanced Vector Extensions (AVX)
+
+Sixteen ymm registers, each one 256 bits is width. To ensure 
+backwards-compatibility with SSE, the lower 128 bits of the ymm registers can
+be used as xmm registers. Introduced a three-operand SIMD instruction format
+so the destination register could be set as separate to the two source registers,
+i.e. the support of non-destructive SIMD. Some SSE instructions were extended to
+the 256-bit cases, and a few new instructions added.
+
+** Advanced Vector Extensions 2 (AVX2)
+
+Expansion of the AVX instruction set, including three-operand fused 
+multiply-accumulate and various register shuffling operations
+
+** Advanced Vector Extensions 512 (AVX-512)
+
+512-bit extensions to the AVX instruction set (32 512-bit wide vector registers 
+named zmm0 through to zmm31: the lower 256 bits of these registers can be used 
+by AVX instructions, and the lower 128 bits by SSE). Plenty of new instructions.
