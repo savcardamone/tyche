@@ -1,4 +1,5 @@
 \section{Quantum Monte Carlo}
+\subsection{Introduction}
 Consider the Schr\"{o}dinger equation for a molecular system whose $3n$ electronic
 and $3N$ nuclear degrees of freedom will be denoted collectively by the position
 vectors $\vec{r}$ and $\vec{R}$, respectively,
@@ -29,9 +30,9 @@ consequently the nuclei can be thought of as static). The application of the
 Born-Oppenheimer approximation also permits our omission of the nuclear kinetic
 energy from \eqref{eq::ElectronicHamiltonian}.
 
-\section{Variational Monte Carlo}
+\subsection{Variational Monte Carlo}
 
-\section{Diffusion Monte Carlo}
+\subsection{Diffusion Monte Carlo}
 The time-dependent Schr\"{o}dinger equation (TDSE) for a molecular system is written
 %
 \begin{equation}\label{eq::TDSE}
@@ -64,6 +65,15 @@ This seemingly innocuous operation results in solutions to \eqref{eq::WickTDSE} 
 decaying exponentials in imaginary time, rather than complex exponentials in ``real''
 time. This gives rise to a particaularly useful property: in the infinite imaginary
 time limit (i.e. as $\tau \rightarrow \infty$), contributions to $\tdelecwfn{\tau}$
-from all but the lowest energy eigenfunctions of $\elecham$ tend to zero. So evolving
+from all but the lowest energy eigenfunctions of $\elecham$ tend to zero. Indeed, we can
+add an offset to the right-hand side of \eqref{eq::WickTDSE} without loss of generality,
+%
+\begin{equation}{\label{eq::WickTDSEOffset}
+  -\hbar\ddt{\tau}\tdelecwfn{\tau} = (\elecham - E_R)\tdelecwfn{\tau} \,.
+\end{equation}
+
+
+
+So evolving
 \eqref{eq::WickTDSE} in imaginary time rather magically leaves us with the ground state
 solution of $\elecham$!

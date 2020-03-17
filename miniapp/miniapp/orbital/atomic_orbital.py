@@ -58,9 +58,9 @@ class AtomicOrbital():
                 denom = np.power(self.zetas[iprim] + self.zetas[jprim], tot_ang_mom + 1.5)
                 summation += coeff_prod / denom
 
-        N = np.sqrt(prefactor * summation)
+        N = 1.0 / np.sqrt(prefactor * summation)
         for iprim in range(len(self.coeffs)):
-            self.coeffs[iprim] /= N
+            self.coeffs[iprim] *= N
 
     def distance(self, pos):
         """Return vector and square distance between atomic orbital centre and the position

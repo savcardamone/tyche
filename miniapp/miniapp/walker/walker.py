@@ -33,7 +33,7 @@ class Walker():
         # trying to do object creation
         if None in (Walker.system, Walker.wavefunction):
             sys.exit("Walker class variables must be initialised before object construction.")
-        
+            
         def place_electron():
             """Place an electron within the van der Waals radius of a random atom,
             weighted by its nuclear charge.

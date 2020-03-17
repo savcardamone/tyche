@@ -5,8 +5,8 @@
 
   <!-- Atomic System listing -->
   <System num_atoms="2">
-    <Atom type="H" pos="0.0, 0.0, 0.0"/>
-    <Atom type="H" pos="0.0, 0.0, 1.0"/>
+    <Atom type="H" pos="0.0, 0.0, -0.5"/>
+    <Atom type="H" pos="0.0, 0.0,  0.5"/>
   </System>
 
   <!-- Wavefunction listing -->
@@ -22,7 +22,7 @@
     
     <!-- Molecular Orbitals -->
     <MolecularOrbitals num_alpha="1" num_beta="1">
-      <Coefficients spin="Both"> 0.15,  0.15 </Coefficients>
+      <Coefficients spin="Both"> 0.163045049583, 0.163045049583 </Coefficients>
     </MolecularOrbitals>
 
   </Wavefunction>

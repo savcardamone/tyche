@@ -63,7 +63,42 @@ class Slater():
         slater_str += "Alpha MO Coefficients\n   {0}\n".format(self.mo_coeffs[0])
         slater_str += "Beta MO Coefficients\n   {0}\n".format(self.mo_coeffs[1])
         return slater_str
-            
+
+    def density_matrix(self):
+        """Compute the density matrices for the alpha- and beta-spin wavefunctions.
+        """
+        return (
+            self.mo_coeffs[0].conj().T @ self.mo_coeffs[0],
+            self.mo_coeffs[1].conj().T @ self.mo_coeffs[1]
+        )
+
+    def density(self, pos):
+        """Evaluate the electronic density at a point in R^3.
+        """
+        (density_matrix_alpha, density_matrix_beta) = self.density_matrix()
+        ao_vals = self.aos.evaluate(pos)
+        density_alpha = ao_vals.T @ density_matrix_alpha @ ao_vals
+        density_beta  = ao_vals.T @ density_matrix_beta  @ ao_vals
+        return density_alpha + density_beta
+
+    ### TODO: The following three routines should be refactored into a QCT class
+    
+    def density_field(self, xs, ys, zs):
+        """Evaluate the density scalar field on a grid.
+        """
+        field = np.zeros(xs.shape, dtype=float)
+        for x in range(xs.shape[0]):
+            for y in range(ys.shape[0]):
+                for z in range(zs.shape[0]):
+                    field[x,y,z] = self.density(np.array([xs[x,y,z], ys[x,y,z], zs[x,y,z]]))
+        return field
+
+    def density_gradient():
+        pass
+
+    def density_curvature():
+        pass
+    
     def matrix(self, pos):
         """Evaluate the spin-Slater matrices for all electrons that are given as an argument.
         """
