@@ -6,9 +6,9 @@ __author__      = "Salvatore Cardamone"
 __email__       = "sav.cardamone@gmail.com"
 
 import sys
+import itertools
 import numpy as np
 import untangle
-import itertools
 
 from miniapp.orbital import atomic_orbital as ao
 
@@ -31,14 +31,14 @@ class LCAO():
             # Loop over atomic basis sets specified in the file until we find the appropriate one
             for atomic_basis_set in atomic_basis_sets:
                 if atomic_basis_set['atom'] == atom.atom_type:
-                    
+
                     # Loop over AOs in this contraction and append each to the LCAO
                     # We explicitly construct the multiple atomic orbitals arising from l > 0
                     for contraction in atomic_basis_set.Contraction:
 
                         coeffs = np.fromstring(contraction.Coeff.cdata, dtype=float, sep=',')
                         zetas = np.fromstring(contraction.Zeta.cdata, dtype=float, sep=',')
-                        
+
                         if contraction['ang_mom'] == "s":
                             ang_moms = [np.array([0, 0, 0], dtype=int)]
                         elif contraction['ang_mom'] == "p":
@@ -53,10 +53,11 @@ class LCAO():
                                 np.array([1, 0, 1], dtype=int), np.array([0, 1, 1], dtype=int)
                             ]
                         else:
-                            sys.exit("Unrecognised contraction ang mom: {0}".format(ang_mom_type))
+                            sys.exit("Unrecognised contraction ang mom: {0}".format(
+                                contraction['ang_mom']))
 
                         # Loop over all (-l <= m <= l) and construct the corresponding
-                        # atomic orbital 
+                        # atomic orbital
                         for ang_mom in ang_moms:
                             atomic_aos.append(
                                 ao.AtomicOrbital(atom.pos, coeffs, zetas, ang_mom)
@@ -75,11 +76,20 @@ class LCAO():
         """
         lcao_str = "Linear Combination of Atomic Orbitals\n"
         lcao_str += "Number of AOs: {0}\n".format(self.num_aos)
-        for ao in self.aos:
-            lcao_str += ao.__str__()
+        for iao in self.aos:
+            lcao_str += iao.__str__()
 
         return lcao_str
-        
+
+    def overlap_matrix(self):
+        """Compute the overlap matrix for all AOs in the LCAO.
+        """
+        matrix = np.zeros((self.num_aos, self.num_aos), dtype=float)
+        for iao in range(self.num_aos):
+            for jao in range(self.num_aos):
+                matrix[iao, jao] = ao.AtomicOrbital.overlap(self.aos[iao], self.aos[jao])
+        return matrix
+
     def evaluate(self, pos):
         """Evaluate all atomic orbitals in the LCAO at a given position.
         """
@@ -92,9 +102,9 @@ class LCAO():
     def gradient(self, pos):
         """Evaluate the gradient of all atomic orbitals in the LCAO at a given position.
         """
-        ao_grads = np.zeros((self.num_aos,3), dtype=float)
+        ao_grads = np.zeros((self.num_aos, 3), dtype=float)
         for iao in range(self.num_aos):
-            ao_grads[iao,:] = self.aos[iao].gradient(pos)
+            ao_grads[iao, :] = self.aos[iao].gradient(pos)
 
         return ao_grads
 

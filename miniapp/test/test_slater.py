@@ -67,7 +67,7 @@ class TestSlater(ut.TestCase):
             density_integral = integrate.tplquad(
                 density_sample, -10, 10, lambda x: -10, lambda x: 10, lambda x, y: -10, lambda x, y: 10
             )
-            print("Expected Integral: {0}   Quadrature Result: {1} +/- {2}".format(test_slater.num_mos[0] + test_slater.num_mos[1], density_sample[0], density_sample[1]))
+            print("Expected Integral: {0}   Quadrature Result: {1} +/- {2}".format(test_slater.num_mos[0] + test_slater.num_mos[1], density_integral[0], density_integral[1]))
             # Verify we get the number of electrons from the integral, to within the quadrature error
             self.assertAlmostEqual(
                 density_integral[0], test_slater.num_mos[0] + test_slater.num_mos[1], delta=density_integral[1]

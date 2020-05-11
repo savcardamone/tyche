@@ -8,37 +8,52 @@ __email__       = "sav.cardamone@gmail.com"
 import sys
 import numpy as np
 from scipy.special import factorial2 as dfac
-import untangle
 
 class AtomicOrbital():
     """Container for an atomic orbital, along with evaluation routines.
     """
 
-    def __init__(self, centre, coeffs, zetas, ang_mom, normalise_ao=True):
+    def __init__(self, centre, coeffs, zetas, ang_mom):
         """Class constructor.
         Initialise the atomic orbital's centre, primitive coefficients/exponents and
         angular momentum. Normalise the AO if the user wants.
         """        
+        if len(coeffs) == len(zetas):
+            self.num_prims = len(coeffs)
+        else:
+            sys.exit("Length of AO coefficient and zetas arrays must be the same.")
+
         self.centre = centre
         self.coeffs = coeffs
         self.zetas = zetas
         self.ang_mom = ang_mom
-
-        # Normalise the primitive expansion
-        if normalise_ao == True:
-            self.normalise()
 
     def __str__(self):
         """Object string representation.
         """
         np.set_printoptions(formatter={'float': '{:9.4f}'.format})
         ao_string = ""
-        ao_string += "Atomic Orbital with {0} primitives.\n".format(len(self.coeffs))
+        ao_string += "Atomic Orbital with {0} primitives.\n".format(self.num_prims)
         ao_string += "   Centre      : {0}\n".format(self.centre) 
         ao_string += "   Coefficients: {0}\n".format(self.coeffs) 
         ao_string += "   Zeta        : {0}\n".format(self.zetas) 
         ao_string += "   Ang. Mom.   : {0}\n".format(self.ang_mom) 
         return ao_string
+
+    @staticmethod
+    def overlap(orb_a, orb_b):
+        """Compute the overlap between two orbital contractions.
+        """
+        acc = 0
+        for aprim in range(orb_a.num_prims):
+            for bprim in range(orb_b.num_prims):
+                gamma = orb_a.zetas[aprim] + orb_b.zetas[bprim]
+                zeta_prod = orb_a.zetas[aprim] * orb_b.zetas[bprim]
+                coeff_prod = orb_a.coeffs[aprim] * orb_b.coeffs[bprim]
+                _, sq_dist = orb_a.distance(orb_b.centre)
+                norm = np.power(np.pi / gamma, 1.5)
+                acc += norm * coeff_prod * np.exp(-zeta_prod * sq_dist / gamma)
+        return acc
 
     def normalise(self):
         """Normalise the atomic orbital so that it's self-overlap is unity. Taken verbatim from
@@ -69,7 +84,7 @@ class AtomicOrbital():
         dr = pos - self.centre
         for iaxis in range(3):
             if dr[iaxis] == 0: dr[iaxis] += np.finfo(float).eps
-        dr_sq = np.linalg.norm(dr)
+        dr_sq = np.inner(dr, dr)
         return dr, dr_sq
 
     def evaluate(self, pos):

@@ -5,9 +5,10 @@
 __author__      = "Salvatore Cardamone"
 __email__       = "sav.cardamone@gmail.com"
 
+import sys
+import xml.etree.cElementTree as et
 import numpy as np
 import untangle
-import xml.etree.cElementTree as et
 
 from miniapp.system import atom
 
